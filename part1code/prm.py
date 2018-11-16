@@ -495,10 +495,7 @@ def send_to_gazebo(verticies_in_path, path):
 
 
 def reposition_robot(vertex):
-    print "starting service 1\n"
-
     state_pub = rospy.Publisher("/gazebo/set_model_state", ModelState, queue_size=10)
-    print "starting service 2\n"
 
     pose = Pose()
 
@@ -517,7 +514,6 @@ def reposition_robot(vertex):
     state.reference_frame = "world"
     state.pose = pose
 
-    print("Moving robot\n")
     state_pub.publish(state)
 
 
@@ -527,7 +523,7 @@ def main():
     graph = road_map.graph
 
     start = Node(util.translation_random(), util.rand_quaternion())
-    goal = Node(util.translation_ground_zero_random(), Quaternion(0, 0, 0, 0))
+    goal = Node(util.translation_matrix_delta(5, 5, 0), Quaternion(0, 0, 0, 0))
 
     verticies_in_path = fda.findPath(start, goal)
     path = map(lambda vertex: (vertex.getX(), vertex.getY(), vertex.getZ()), verticies_in_path)
