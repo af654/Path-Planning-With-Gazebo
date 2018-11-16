@@ -482,11 +482,16 @@ def send_to_gazebo(verticies_in_path, path):
     rospy.init_node('move_robot_to_given_place')
     print "hello world 2\n"
 
+    counter = 0
     while not rospy.is_shutdown():
+        if counter >= len(verticies_in_path):
+            break
+
         rospy.sleep(1)
         print "reposition robot now"
 
-        reposition_robot(verticies_in_path[0])
+        reposition_robot(verticies_in_path[counter])
+        counter += 1
 
 
 def reposition_robot(vertex):
