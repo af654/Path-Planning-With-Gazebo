@@ -518,7 +518,7 @@ def reposition_robot(vertex):
 
 
 def main():
-    road_map = RoadMap(AsymptoticPRM())
+    road_map = RoadMap(FixedKPRM())
     fda = APath(road_map)
     graph = road_map.graph
 

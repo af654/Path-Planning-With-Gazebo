@@ -17,7 +17,7 @@ BOUNDARY_MIN_Z = 0
 BOUNDARY_MAX_Z = 3
 
 NUM_SAMPLES = 1000
-FIXED_K = 3
+FIXED_K = 10
 
 
 def print_board(board):
