@@ -487,7 +487,7 @@ def send_to_gazebo(verticies_in_path, path):
         if counter >= len(verticies_in_path):
             break
 
-        rospy.sleep(1)
+        rospy.sleep(0.2)
         print "reposition robot now"
 
         reposition_robot(verticies_in_path[counter])
