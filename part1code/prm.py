@@ -248,8 +248,9 @@ class FixedKPRM(PRMSample):
                 collision = False
 
                 for points in points_list:
-                    if not pqp.pqp_client(points, util.interpolate_quaternions(node.rotation,
-                                                                               neighbor.rotation).as_rotation_matrix().flatten()):
+                    if not pqp.pqp_client(points,
+                                          util.interpolate_quaternions(node.rotation,
+                                                                       neighbor.rotation).as_rotation_matrix().flatten()):
                         collision = True
                         break
                 if collision:
