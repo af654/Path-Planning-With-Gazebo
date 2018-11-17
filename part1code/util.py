@@ -80,7 +80,8 @@ def Bresenham3D(node1, node2):
         elif currentX < BOUNDARY_MAX_X or currentY < BOUNDARY_MIN_Y or currentZ < BOUNDARY_MIN_Z:
             break
 
-        if not (abs(currentX - x2) > 1 or abs(currentY - y2) > 1 or abs(currentZ - z2) > 1):
+        if not (abs(currentX - x2) >= BOUNDARY_MIN_X or abs(currentY - y2) >= BOUNDARY_MIN_Y or abs(
+                currentZ - z2) >= BOUNDARY_MIN_Z):
             break
 
     return points
