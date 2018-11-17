@@ -199,8 +199,8 @@ class PRMSample:
         for n in range(0, util.NUM_SAMPLES):
             translation, rotation = self.get_sample_point()  # TODO we need to check if the list contains a neighbor in the same position or else we got problems
             node = Node(translation, rotation)
-            # if pqp.pqp_client(node.as_translation_vector(), node.rotation.as_rotation_matrix().flatten()):
-            self.add_node(node)
+            if pqp.pqp_client(node.as_translation_vector(), node.rotation.as_rotation_matrix().flatten()):
+                self.add_node(node)
         pass
 
     @abstractmethod
@@ -247,7 +247,9 @@ class FixedKPRM(PRMSample):
                 collision = False
 
                 for points in points_list:
-                    break
+                    if not pqp.pqp_client(points, node.rotation.as_rotation_matrix().flatten()):
+                        collision = True
+                        break
                 if collision:
                     close_neighbors[index] = None  # We need to build this list later for none elements
 
@@ -351,6 +353,7 @@ class AsymptoticPRM(FixedKPRM):
                 collision = False
 
                 for points in points_list:
+
                     break
                 if collision:
                     close_neighbors[index] = None  # We need to build this list later for none elements
