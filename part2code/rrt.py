@@ -203,8 +203,8 @@ class RRTtree(start, goal):
   #get the nearest sample point to the previous point (xnew based on xnear)
   def get_sample_point(previous_node):
 	#need a new translation method that translates according to the angle and time
-	translation = util.get_translation()
-	rotation = util.rand_quaternion()
+	translation = get_translation_controls(previous_node)
+	rotation = rand_quaternion_controls(previous_node)
 	return translation, rotation
 
   def add_sample_point(self, node):
@@ -227,6 +227,14 @@ class RRTtree(start, goal):
 	    nnear = self.near(n)
 	    #find new node based on the transition equation
 	    self.step(nnear,n)
+		
+def get_translation_controls(previous_node):
+	pass
+	#TODO: fix this method so that we propogate new controls based on the previous node
+	
+def rand_quaternion_controls(previous_node):
+	pass
+	#TODO: fix this method so that we propogate new controls based on the previous node
 
 def send_to_gazebo(controls_of_ackermann, controls_in_path):
     rospy.init_node('move_robot_to_given_place')
