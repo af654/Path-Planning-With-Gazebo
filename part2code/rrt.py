@@ -11,6 +11,7 @@ import random
 
 #node limit
 nmax = 2000
+SPEEDS = [-1,0,1]
 
 class Node(RelativePosition):
     def __init__(self, translation, rotation):
@@ -20,10 +21,13 @@ class Node(RelativePosition):
         self.added_index = 0
         self.index = 0
         self.cap_neighbors = nn.INIT_CAP_NEIGHBORS
-
+	
         self.parent = self
         self.edgeCost = 0
         self.f = 0
+	
+	self.speed = 0
+	self.steering_angle = 0
 
     def getX(self):
         return self.translation[0][3]
@@ -163,11 +167,44 @@ class RelativePosition:
             points = numpy.dot(points, trans)
         return points
 
+class RoadMap:
+    def __init__(self, tree):
+        self.graph = nn.NearestNeighbors(util.distance)
+
+        tree.road_map = self
+        tree.populate()
+        tree.connect(self.graph.nr_nodes, self.graph.nodes)
+
+        self.tree = tree
+	
 class RRTtree(start, goal):
   def __init__(self, start, goal):
         # need 7 dimensional node because of quaternion definition
         self.start = start
+	add_sample_point(start)
         self.goal = goal
+	
+  def populate():
+	previous_node = self.start
+	for i in range(0,nmax):
+		#go through controls
+		translation, rotation = self.get_sample_point(previous_node)
+		new_node = Node(translation, rotation)
+		self.add_sample_point(new_node)
+		previous_node = new_node
+		
+	add_sample_point(self.goal)
+  #get the nearest sample point to the previous point
+  def get_sample_point():
+	#need a new translation method that translates according to the angle and time
+	translation = util.get_translation()
+	rotation = util.rand_quaternion()
+	return translation, rotation
+
+  def add_sample_point(self, node):
+	if node in self.tree.graph.nodes:
+            return
+        self.tree.graph.add_node(node)
         
   #expand a random point
   #calls subroutines to find nearest node and connect it
@@ -222,13 +259,13 @@ def reposition_ackermann(vertex):
 
     state_pub.publish(state)
 
-
 def main():
+  #start for the robot is the bottom left of the maze and goal is the top right of the maze
   start = Node(util.translation_matrix_delta(0, 3, 0), util.rand_quaternion())
   goal = Node(util.translation_matrix_delta(5, 5, 0), Quaternion(0, 0, 0, 0))
   
   #create an RRT tree with a start node
-  rrt_tree=RRTtree(start, goal)
+  rrt_tree=Road_Map(RRTtree(start, goal))
   
   controls_of_ackermann = rrt_tree
   #run a star on the tree to get solution path
