@@ -166,25 +166,24 @@ class RelativePosition:
 class RRTtree(start, goal):
   def __init__(self, start, goal):
         # need 7 dimensional node because of quaternion definition
-
         self.start = start
         self.goal = goal
         
   #expand a random point
-	#calls subroutines to find nearest node and connect it
-	def expand (self):
-		    #add random node
-		    x = random.uniform (E.xmin, E.xmax)
-		    y = random.uniform (E.ymin, E.ymax)
-		    theta = random.uniform (0, math.pi)
-		    n= self.number_of_nodes() #new node number
-		    self.add_node(n,x,y,theta)
-		    
+  #calls subroutines to find nearest node and connect it
+  def expand (self):
+	#add random node
+	x = random.uniform (E.xmin, E.xmax)
+	y = random.uniform (E.ymin, E.ymax)
+	theta = random.uniform (0, math.pi)
+	n= self.number_of_nodes() #new node number
+	self.add_node(n,x,y,theta)
+ 
         if E.isfree()!=0:
             #find nearest node
-			      nnear = self.near(n)
-			      #find new node based on the transition equation
-			      self.step(nnear,n)
+	    nnear = self.near(n)
+	    #find new node based on the transition equation
+	    self.step(nnear,n)
 
 def send_to_gazebo(controls_of_ackermann, controls_in_path):
     rospy.init_node('move_robot_to_given_place')
