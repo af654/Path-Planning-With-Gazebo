@@ -114,7 +114,7 @@ def Bresenham3D(node1, node2):
     derry = sy * vxvz
     derrz = sz * vxvy
 
-    testEscape = 100
+    testEscape = 20
 
     while True:
         points.append([gx, gy, gz])
