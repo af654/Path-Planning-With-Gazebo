@@ -525,7 +525,7 @@ def main():
     fda = APath(road_map)
     graph = road_map.graph
 
-    start = Node(util.translation_matrix_delta(0, 5, 0), util.rand_quaternion())
+    start = Node(util.translation_matrix_delta(0, 3, 0), util.rand_quaternion())
     goal = Node(util.translation_matrix_delta(5, 5, 0), Quaternion(0, 0, 0, 0))
 
     verticies_in_path = fda.findPath(start, goal)
