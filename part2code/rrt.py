@@ -27,7 +27,8 @@ class Node(RelativePosition):
         self.f = 0
 	
 	self.speed = 0
-	self.steering_angle = 0
+	self.linear = 0
+	self.angular = 0
 
     def getX(self):
         return self.translation[0][3]
@@ -171,7 +172,7 @@ class RoadMap:
     def __init__(self, tree):
         self.graph = nn.NearestNeighbors(util.distance)
 
-        tree.road_map = self
+        tree.tree = self
         tree.populate()
         tree.connect(self.graph.nr_nodes, self.graph.nodes)
 
@@ -188,14 +189,19 @@ class RRTtree(start, goal):
 	previous_node = self.start
 	for i in range(0,nmax):
 		#go through controls
+		save_model_state(previous_node)
+		
 		translation, rotation = self.get_sample_point(previous_node)
 		new_node = Node(translation, rotation)
 		self.add_sample_point(new_node)
 		previous_node = new_node
 		
+		save_model_state(new_node)
+		
 	add_sample_point(self.goal)
-  #get the nearest sample point to the previous point
-  def get_sample_point():
+	
+  #get the nearest sample point to the previous point (xnew based on xnear)
+  def get_sample_point(previous_node):
 	#need a new translation method that translates according to the angle and time
 	translation = util.get_translation()
 	rotation = util.rand_quaternion()
@@ -234,28 +240,33 @@ def send_to_gazebo(controls_of_ackermann, controls_in_path):
         rospy.sleep(1)
         print "reposition robot now"
 
-        reposition_ackermann(controls_in_path[counter])
+        save_model_state(controls_in_path[counter])
         counter += 1
         
-def reposition_ackermann(vertex):
+def save_model_state(node):
    # Set Gazebo Model pose and twist
     state_pub = rospy.Publisher("/gazebo/set_model_state", ModelState, queue_size=10)
     pose = Pose()
+    twist = Twist()
 
-    pose.position.x = vertex.getX()
-    pose.position.y = vertex.getY()
-    pose.position.z = vertex.getZ()
+    pose.position.x = node.getX()
+    pose.position.y = node.getY()
+    pose.position.z = node.getZ()
 
-    pose.orientation.x = vertex.rotation.x
-    pose.orientation.y = vertex.rotation.y
-    pose.orientation.z = vertex.rotation.z
-    pose.orientation.w = vertex.rotation.w
+    pose.orientation.x = node.rotation.x
+    pose.orientation.y = node.rotation.y
+    pose.orientation.z = node.rotation.z
+    pose.orientation.w = node.rotation.w
+   
+    twist.linear = node.linear
+    twist.angular = node.angular
 
     state = ModelState()
 
     state.model_name = "ackermann_vehicle"
     state.reference_frame = "world"
     state.pose = pose
+    state.twist = twist
 
     state_pub.publish(state)
 
