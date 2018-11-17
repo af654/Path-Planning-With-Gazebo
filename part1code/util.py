@@ -42,13 +42,13 @@ def asymptotic_k(num_nodes):
 
 
 def Bresenham3D(node1, node2):
-    x1, y1, z1 = node1.getX() - BOUNDARY_MIN_X, node1.getY() - BOUNDARY_MIN_Y, node1.getZ()
-    x2, y2, z2 = node2.getX() - BOUNDARY_MIN_X, node2.getY() - BOUNDARY_MIN_Y, node2.getZ()
+    x1, y1, z1 = node1.getX(), node1.getY(), node1.getZ()
+    x2, y2, z2 = node2.getX(), node2.getY(), node2.getZ()
 
     points = []
 
-    points.append((x1 + BOUNDARY_MIN_X, y1 + BOUNDARY_MIN_Y, z1))
-    points.append((x2 + BOUNDARY_MIN_X, y2 + BOUNDARY_MIN_Y, z2))
+    points.append((x1 + BOUNDARY_MIN_X, y1, z1))
+    points.append((x2 + BOUNDARY_MIN_X, y2, z2))
 
     diffX = x2 - x1
     diffY = y2 - y1
@@ -73,7 +73,7 @@ def Bresenham3D(node1, node2):
         currentX += dirX
         currentY += dirY
         currentZ += dirZ
-        points.append([currentX + BOUNDARY_MIN_X, currentY + BOUNDARY_MIN_Y, currentZ])
+        points.append([currentX, currentY, currentZ])
 
         if currentX > BOUNDARY_MAX_X or currentY > BOUNDARY_MAX_Y or currentZ > BOUNDARY_MAX_Z:
             break
