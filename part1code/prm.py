@@ -9,6 +9,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 import util
 import nearest_neighbors as nn
+import pqp_ros_client_ours as pqp
 from gazebo_msgs.msg import ModelState, ModelStates
 from geometry_msgs.msg import Point, Pose, Twist, Quaternion
 import rospy
