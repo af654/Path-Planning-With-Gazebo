@@ -73,7 +73,12 @@ def Bresenham3D(node1, node2):
         currentX += dirX
         currentY += dirY
         currentZ += dirZ
-        points.append([currentX + BOUNDARY_MIN_X, currentY + BOUNDARY_MIN_Y, currentZ + BOUNDARY_MIN_Z])
+        points.append([currentX + BOUNDARY_MIN_X, currentY + BOUNDARY_MIN_Y, currentZ])
+
+        if currentX > BOUNDARY_MAX_X or currentY > BOUNDARY_MAX_Y or currentZ > BOUNDARY_MAX_Z:
+            break
+        elif currentX < BOUNDARY_MAX_X or currentY < BOUNDARY_MIN_Y or currentZ < BOUNDARY_MIN_Z:
+            break
 
         if not (abs(currentX - x2) > 1 or abs(currentY - y2) > 1 or abs(currentZ - z2) > 1):
             break
