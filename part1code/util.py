@@ -7,8 +7,8 @@ from prm import Quaternion
 
 FLOAT_EPS = numpy.finfo(numpy.float).eps
 
-BOUNDARY_MIN_X = -10
-BOUNDARY_MIN_Y = -10
+BOUNDARY_MIN_X = 0
+BOUNDARY_MIN_Y = 0
 
 BOUNDARY_MAX_X = 10
 BOUNDARY_MAX_Y = 10
