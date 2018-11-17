@@ -42,47 +42,103 @@ def asymptotic_k(num_nodes):
 
 
 def Bresenham3D(node1, node2):
-    x1, y1, z1 = node1.getX(), node1.getY(), node1.getZ()
-    x2, y2, z2 = node2.getX(), node2.getY(), node2.getZ()
+    gx0, gy0, gz0 = node1.getX(), node1.getY(), node1.getZ()
+    gx1, gy1, gz1 = node2.getX(), node2.getY(), node2.getZ()
 
     points = []
 
-    points.append((x1 + BOUNDARY_MIN_X, y1, z1))
-    points.append((x2 + BOUNDARY_MIN_X, y2, z2))
+    gx0idx = math.floor(gx0)
+    gy0idx = math.floor(gy0)
+    gz0idx = math.floor(gz0)
 
-    diffX = x2 - x1
-    diffY = y2 - y1
-    diffZ = z2 - z1
+    gx1idx = math.floor(gx1)
+    gy1idx = math.floor(gy1)
+    gz1idx = math.floor(gz1)
 
-    biggest = max(abs(diffX), abs(diffY), abs(diffZ))
+    if gx1idx > gx0idx:
+        sx = -1
+    else:
+        sx = 0
 
-    dirX = 0.0
-    dirY = 0.0
-    dirZ = 0.0
+    if gy1idx > gy0idx:
+        sy = -1
+    else:
+        sy = 0
 
-    if biggest != 0:
-        dirX = diffX / biggest
-        dirY = diffY / biggest
-        dirZ = diffZ / biggest
+    if gz1idx > gz0idx:
+        sz = -1
+    else:
+        sz = 0
 
-    currentX = x1
-    currentY = x2
-    currentZ = z1
+    gx = gx0idx
+    gy = gy0idx
+    gz = gz0idx
+
+    gxp = gx0idx
+
+    if gx1idx > gx0idx:
+        gxp += 1
+
+    gyp = gy0idx
+    if gy1idx > gy0idx:
+        gyp += 1
+
+    gzp = gz0idx
+    if gz1idx > gz0idx:
+        gzp += 1
+
+    if gx1 is gx0:
+        vx = 1
+    else:
+        vx = gx1 - gx0
+
+    if gy1 is gy0:
+        vy = 1
+    else:
+        vy = gy1 - gy0
+
+    if gz1 is gz0:
+        vz = 1
+    else:
+        vz = gz1 - gz0
+
+    vxvy = vx * vy
+    vxvz = vx * vz
+    vyvz = vy * vz
+
+    errx = (gxp - gx0) * vyvz
+    erry = (gyp - gy0) * vxvz
+    errz = (gzp - gz0) * vxvy
+
+    derrx = sx * vyvz
+    derry = sy * vxvz
+    derrz = sz * vxvy
+
+    testEscape = 100
 
     while True:
-        currentX += dirX
-        currentY += dirY
-        currentZ += dirZ
-        points.append([currentX, currentY, currentZ])
+        points.append([gx, gy, gz])
 
-        if currentX > BOUNDARY_MAX_X or currentY > BOUNDARY_MAX_Y or currentZ > BOUNDARY_MAX_Z:
-            break
-        elif currentX < BOUNDARY_MAX_X or currentY < BOUNDARY_MIN_Y or currentZ < BOUNDARY_MIN_Z:
+        if gx is gx1idx and gy is gy1idx and gz is gz1idx:
             break
 
-        if not (abs(currentX - x2) >= BOUNDARY_MIN_X or abs(currentY - y2) >= BOUNDARY_MIN_Y or abs(
-                currentZ - z2) >= BOUNDARY_MIN_Z):
+        xr = math.fabs(errx);
+        yr = math.fabs(erry);
+        zr = math.fabs(errz);
+
+        if sx is not 0 and (sy is 0 or xr < yr) and (sz is 0 or xr < zr):
+            gx += sx;
+            errx += derrx;
+        elif sy is not 0 and (sz is 0 or yr < zr):
+            gy += sy;
+            erry += derry;
+        elif sz is 0:
+            gz += sz;
+            errz += derrz;
+
+        if testEscape == 0:
             break
+        testEscape -= 1
 
     return points
 
