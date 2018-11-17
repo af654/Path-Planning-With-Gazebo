@@ -304,7 +304,9 @@ class ConnectedComponentPRM(PRMSample):
                 collision = False
 
                 for points in points_list:
-                    break
+                    if not pqp.pqp_client(points, neighbor.rotation.as_rotation_matrix().flatten()):
+                        collision = True
+                        break
                 if collision:
                     close_neighbors[index] = None  # We need to build this list later for none elements
 
@@ -354,7 +356,9 @@ class AsymptoticPRM(FixedKPRM):
                 collision = False
 
                 for points in points_list:
-                    break
+                    if not pqp.pqp_client(points, neighbor.rotation.as_rotation_matrix().flatten()):
+                        collision = True
+                        break
                 if collision:
                     close_neighbors[index] = None  # We need to build this list later for none elements
 
