@@ -210,7 +210,7 @@ class RRTtree():
         node_zero = Node(translation, theta)
         d_min = util.distance_controls(node_zero, new_node)
         print d_min
-        node_near = 0
+        node_near = node_zero
         for i in range(0,num_neighbors):
             node = close_neighbors[i]
             if util.distance_controls(node, new_node) < d_min:
