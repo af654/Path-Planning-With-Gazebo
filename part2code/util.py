@@ -105,10 +105,8 @@ def distance_controls(in_s, in_t): # calculates the offsets of each dimension
 
     return math.sqrt(sum_d)
 
+"""
 def rand_quaternion():
-    """
-    :return: #type  Quaternion
-    """
     # numpy.random() returns random floats in the half-open interval [0.0, 1.0)
     s = random.uniform(0, 1)
     theta_1 = math.sqrt(1 - s)
@@ -121,33 +119,7 @@ def rand_quaternion():
     z = numpy.sin(phi_2) * theta_2
 
     return Quaternion(x, y, z, w)
-
-
-# class that defines the road map of sample points
-def interpolate_quaternions(q1, q2):
-    # compute the quaternion inner product
-    w1, x1, y1, z1 = q1.w, q1.x, q1.y, q1.z
-    w2, x2, y2, z2 = q2.w, q2.x, q2.y, q2.z
-    Nq = w1 * w2 + x1 * x2 + y1 * y2 + z1 * z2
-    f = 1.0 / (random.randint(1, 9))
-    if Nq < 0:
-        w2 = -1 * w2
-        x2 = -1 * x2
-        y2 = -1 * y2
-        z2 = -1 * z2
-        Nq = -1 * Nq
-    if math.fabs(1 - Nq) < FLOAT_EPS:
-        r = 1 - f
-        s = f
-    else:
-        # calculate the spherical linear interpolation factors
-        alpha = math.acos(Nq)
-        gamma = 1.0 / math.sin(alpha)
-        r = math.sin((1 - f) * alpha) * gamma
-        s = math.sin(f * alpha) * gamma
-    # set interpolated quaternion
-    return Quaternion(r * x1 + s * x2, r * y1 + s * y2, r * z1 + s * z2, r * w1 + s * w2)
-
+"""
 
 def translation_random():
     return translation_matrix_delta(random.uniform(BOUNDARY_MIN_X, BOUNDARY_MAX_X),

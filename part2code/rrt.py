@@ -148,8 +148,8 @@ class RRTtree(start, goal):
 
         #this is here for testing purposes - need to get rid of and add gazebo integration
         self.uSpeed = [2, 1, 0.5, 0.25 ]
-		self.uSteer = [math.pi/-6.0,math.pi/-12.0,math.pi/-18.0, 0.0, math.pi/6.0,math.pi/12.0,math.pi/18.0]
-		self.ut = 1
+        self.uSteer = [math.pi/-6.0,math.pi/-12.0,math.pi/-18.0, 0.0, math.pi/6.0,math.pi/12.0,math.pi/18.0]
+        self.ut = 1
 	
     #function that populates the rrt with controls
     def populate():
@@ -160,11 +160,9 @@ class RRTtree(start, goal):
 		    translation, theta = self.get_sample_point()
 		    new_node = Node(translation, theta)
 		    self.add_sample_point(new_node)
-
             #find nearest node to random node previous_node
-		    previous_node = new_node
+            previous_node = new_node
             expand(new_node)
-
             self.remove_sample_point(new_node)
 	
     #get the nearest sample point to the previous point (xnew based on xnear)
