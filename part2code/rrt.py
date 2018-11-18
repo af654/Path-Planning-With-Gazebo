@@ -305,11 +305,11 @@ class Path:
 
         # return               max(abs(vertex.x - goal.x), abs(vertex.y - goal.y))
 
-        return util.distance(vertex, goal) * 1.222222
+        return util.distance_controls(vertex, goal) * 1.222222
 
     @staticmethod
     def c(from_vertex, to_vertex):  # the straight line distance between the s node and e node.
-        return util.distance(from_vertex, to_vertex)
+        return util.distance_controls(from_vertex, to_vertex)
 
     def f(self, vertex, goal):
         vertex.f = vertex.edgeCost + self.h(vertex, goal)
@@ -327,7 +327,6 @@ class APath(Path):
 
         end_points = [start, goal]
         graph.add_nodes(end_points, 2)
-        self.road_map.sampler.connect(2, end_points)
 
         closed = set()
 
