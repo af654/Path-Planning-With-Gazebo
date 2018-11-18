@@ -177,28 +177,7 @@ class RRTtree():
 
     def remove_sample_point(self, node):
         self.tree.graph.remove_node(node)
-        
-    #calls subroutines to find nearest node and connect it
-    #find nearest node to random node previous_node
-    def expand (self, new_node):
-        graph = self.tree.graph  # type: nn.NearestNeighbors
-        close_neighbors = nn.pad_or_truncate([], util.FIXED_K, -1)
-        neighbor_distance = nn.pad_or_truncate([], util.FIXED_K, sys.maxint)
-        #find nearest node to new_node based on its neighbors
-        num_neighbors = graph.find_k_close(new_node, close_neighbors, neighbor_distance, util.FIXED_K)
-        node_near = self.near(num_neighbors, new_node)
-        self.step(node_near,new_node)
-
-    #returns the index of the nearest node within num_neighbors to new_node
-    def near(self, num_neighbors, new_node):
-        d_min = util.distance_controls(0,new_node)
-        node_near = 0
-        for i in num_neighbors:
-            if util.distance_controls(i,new_node) < d_min:
-                dmin=util.distance_controls(i,new_node)
-                node_near = i
-        return node_near
-
+    
     #state transition 
     #find new node to connect nearest to new
 	def step(self,nnear,nrand):
@@ -230,8 +209,15 @@ class RRTtree():
 				near = i
         
         #add the control to the control space for sampling 
-        add_sample_point(nrand,xr[near][-1],yr[near][-1],thetar[near][-1])
-        
+        translation = np.eye(2)
+        translation[0][2] = xr[-1]
+        translation[1][2] = yr[-1]
+        theta = thetar[-1]
+        node = Node(translation, theta)
+        self.add_sample_point(node)
+        #collision detection
+		#do this later
+
     #generate trajectory by integrating equations of motion			
 	def trajectory(self,xi,yi,thetai,ust,usp):
 		(x,y,theta)=([],[],[])
@@ -244,6 +230,27 @@ class RRTtree():
 			x.append(x[i-1]+usp*math.cos(theta[i-1])*dt)
 			y.append(y[i-1]+usp*math.sin(theta[i-1])*dt)	
 		return (x,y,theta)
+        
+    #calls subroutines to find nearest node and connect it
+    #find nearest node to random node previous_node
+    def expand (self, new_node):
+        graph = self.tree.graph  # type: nn.NearestNeighbors
+        close_neighbors = nn.pad_or_truncate([], util.FIXED_K, -1)
+        neighbor_distance = nn.pad_or_truncate([], util.FIXED_K, sys.maxint)
+        #find nearest node to new_node based on its neighbors
+        num_neighbors = graph.find_k_close(new_node, close_neighbors, neighbor_distance, util.FIXED_K)
+        node_near = self.near(num_neighbors, new_node)
+        self.step(node_near,new_node)
+
+    #returns the index of the nearest node within num_neighbors to new_node
+    def near(self, num_neighbors, new_node):
+        d_min = util.distance_controls(0,new_node)
+        node_near = 0
+        for i in num_neighbors:
+            if util.distance_controls(i,new_node) < d_min:
+                d_min=util.distance_controls(i,new_node)
+                node_near = i
+        return node_near
 		
 def get_translation_controls():
 	#generate a random x and y as controls for the translation part
