@@ -143,9 +143,10 @@ class RoadMap:
         self.tree = tree_1
 
         tree_1.tree = self
+        print "we got here"
         tree_1.populate()
+        print "we got here too"
     # tree.connect(self.graph.nr_nodes, self.graph.nodes)
-
 
 class RRTtree():
     def __init__(self, start, goal):
@@ -202,7 +203,7 @@ class RRTtree():
         node_near = 0
         for i in num_neighbors:
             if util.distance_controls(i, new_node) < d_min:
-                dmin = util.distance_controls(i, new_node)
+                d_min = util.distance_controls(i, new_node)
                 node_near = i
         return node_near
 
