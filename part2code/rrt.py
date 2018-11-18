@@ -13,25 +13,23 @@ import util
 import nearest_neighbors as nn
 import sys
 from datetime import datetime
+#import pqp_ros_client_ours as pqp
+#from gazebo_msgs.msg import ModelState, ModelStates
+#from geometry_msgs.msg import Point, Pose, Twist
+#import rospy
+#from std_msgs.msg import String
+#from gazebo_msgs.srv import SetModelState
 
-# import pqp_ros_client_ours as pqp
-# from gazebo_msgs.msg import ModelState, ModelStates
-# from geometry_msgs.msg import Point, Pose, Twist
-# import rospy
-# from std_msgs.msg import String
-# from gazebo_msgs.srv import SetModelState
-
-# node limit
+#node limit
 nmax = 3000
-
 
 # class that defines a node in se(2)
 class RelativePosition:
 
     def __init__(self, translation, theta):
-        # only a 4 dimensional control space
-        # we are feeding linear and angular velocity as the twist to the robot
-        # and x and y as the pose to the robot
+        #only a 4 dimensional control space
+        #we are feeding linear and angular velocity as the twist to the robot 
+        #and x and y as the pose to the robot
 
         self.translation = translation
         self.theta = theta
@@ -49,24 +47,23 @@ class RelativePosition:
             points = np.dot(points, trans)
         return points
 
-
 class Node(RelativePosition):
     def __init__(self, translation, theta):
-        # rotation is just theta since we are sampling only controls
+        #rotation is just theta since we are sampling only controls
         RelativePosition.__init__(self, translation, theta)
         self.neighbors = nn.pad_or_truncate([], nn.INIT_CAP_NEIGHBORS, -1)
         self.nr_neighbors = 0
         self.added_index = 0
         self.index = 0
         self.cap_neighbors = nn.INIT_CAP_NEIGHBORS
-
+	
         self.parent = self
         self.edgeCost = 0
         self.f = 0
 
-        # linear position
+        #linear position
         self.theta = 0
-        # angular position
+        #angular position
         self.angular = 0
 
     def getX(self):
@@ -128,142 +125,137 @@ class Node(RelativePosition):
     def __eq__(self, other):
         if other is None:
             return False
-        return self.getX(), self.getY() == (other.getX(), other.getY())
-
+        return (self.getX(), self.getY() == (other.getX(), other.getY()))
+    
     def __cmp__(self, other):
         if other is None:
             return -1
         return cmp((self.f, self.f - sys.maxunicode * self.edgeCost),
                    (other.f, other.f - sys.maxunicode * other.edgeCost))
 
-
 class RoadMap:
-    def __init__(self, tree):
+    def __init__(self, tree_1):
         self.graph = nn.NearestNeighbors(util.distance_controls)
-        self.tree = tree
 
-        tree.graph = self
-        tree.populate()
-    # tree.connect(self.graph.nr_nodes, self.graph.nodes)
-
-
+        tree_1.tree = self
+        tree_1.populate()
+       # tree.connect(self.graph.nr_nodes, self.graph.nodes)
+	
 class RRTtree():
     def __init__(self, start, goal):
         self.start = start
         self.goal = goal
-        self.graph = None
-        # this is here for testing purposes - need to get rid of and add gazebo integration
-        self.uSpeed = [-1, 0, 1]
-        self.uSteer = [math.pi / -6.0, math.pi / -12.0, math.pi / -18.0, 0.0, math.pi / 6.0, math.pi / 12.0,
-                       math.pi / 18.0]
+        self.tree = None
+        #this is here for testing purposes - need to get rid of and add gazebo integration
+        self.uSpeed = [-1,0,1]
+        self.uSteer = [math.pi/-6.0,math.pi/-12.0,math.pi/-18.0, 0.0, math.pi/6.0,math.pi/12.0,math.pi/18.0]
         self.ut = 1
-
-    # function that populates the rrt with controls
-    # populate the sample space with a random control with a random duration
+	
+    #function that populates the rrt with controls
+    #populate the sample space with a random control with a random duration
     def populate(self):
         previous_node = self.start
-        for i in range(0, nmax):
-            translation, theta = get_translation_controls(), rand_quaternion_controls()
-            new_node = Node(translation, theta)  # type: Node
+        for i in range(0,nmax):
+            translation, theta = get_translation_controls(),rand_quaternion_controls()
+            new_node = Node(translation, theta)
             self.add_sample_point(new_node)
             previous_node = new_node
             self.expand(new_node)
             self.remove_sample_point(new_node)
-
-    # get the nearest sample point to the previous point (xnew based on xnear)
+	
+    #get the nearest sample point to the previous point (xnew based on xnear)
 
     def get_sample_point(self):
-        translation = get_translation_controls()
-        theta = rand_quaternion_controls()
-        return translation, theta
+	    translation = get_translation_controls()
+	    theta = rand_quaternion_controls()
+	    return translation, theta
 
     def add_sample_point(self, node):
-        if node in self.graph.graph.nodes:
+        if node in self.tree.graph.nodes:
             return
-        self.graph.graph.add_node(node)
+        self.tree.graph.add_node(node)
 
     def remove_sample_point(self, node):
-        self.graph.graph.remove_node(node)
-
-    # calls subroutines to find nearest node and connect it
-    # find nearest node to random node previous_node
-    def expand(self, new_node):
-        graph = self.graph.graph  # type: nn.NearestNeighbors
+        self.tree.graph.remove_node(node)
+        
+    #calls subroutines to find nearest node and connect it
+    #find nearest node to random node previous_node
+    def expand (self, new_node):
+        graph = self.tree.graph  # type: nn.NearestNeighbors
         close_neighbors = nn.pad_or_truncate([], util.FIXED_K, -1)
         neighbor_distance = nn.pad_or_truncate([], util.FIXED_K, sys.maxint)
-        # find nearest node to new_node based on its neighbors
+        #find nearest node to new_node based on its neighbors
         num_neighbors = graph.find_k_close(new_node, close_neighbors, neighbor_distance, util.FIXED_K)
         node_near = self.near(num_neighbors, new_node)
-        self.step(node_near, new_node)
+        self.step(node_near,new_node)
 
-    # returns the index of the nearest node within num_neighbors to new_node
+    #returns the index of the nearest node within num_neighbors to new_node
     def near(self, num_neighbors, new_node):
-        d_min = util.distance_controls(0, new_node)
+        d_min = util.distance_controls(0,new_node)
         node_near = 0
         for i in num_neighbors:
-            if util.distance_controls(i, new_node) < d_min:
-                dmin = util.distance_controls(i, new_node)
+            if util.distance_controls(i,new_node) < d_min:
+                dmin=util.distance_controls(i,new_node)
                 node_near = i
         return node_near
 
-    # state transition
-    # find new node to connect nearest to new
-    def step(self, nnear, nrand):
-        (xn, yn, thetan) = (nnear.x, nnear.y, nnear.theta)
-        (xran, yran, thetaran) = (nrand.x, nrand.y, nrand.theta)
-
-        # compute all reachable states
-        xr = []
-        yr = []
-        thetar = []
-        usp = []
-        ust = []
-        for i in self.uSpeed:
-            for j in self.uSteer:
-                usp.append(i)
-                ust.append(j)
-                (x, y, theta) = self.trajectory(xn, yn, thetan, j, i)
-                xr.append(x)
-                yr.append(y)
-                thetar.append(theta)
-
-        # find a nearest reachable from nnear to nrand
-        dmin = ((((xran - xr[0][-1]) ** 2) + ((yran - yr[0][-1]) ** 2)) ** (0.5))
-        near = 0
-        for i in range(1, len(xr)):
-            d = ((((xran - xr[i][-1]) ** 2) + ((yran - yr[i][-1]) ** 2)) ** (0.5))
-            if d < dmin:
-                dmin = d
-                near = i
-        self.add_sample_point(nrand, xr[near][-1], yr[near][-1], thetar[near][-1])
-
-    # generate trajectory by integrating equations of motion
-    def trajectory(self, xi, yi, thetai, ust, usp):
-        (x, y, theta) = ([], [], [])
-        x.append(xi)
-        y.append(yi)
-        theta.append(thetai)
-        dt = 0.01
-        for i in range(1, int(self.ut / dt)):
-            theta.append(theta[i - 1] + usp * math.tan(ust) / 1.9 * dt)
-            x.append(x[i - 1] + usp * math.cos(theta[i - 1]) * dt)
-            y.append(y[i - 1] + usp * math.sin(theta[i - 1]) * dt)
-        return (x, y, theta)
-
-
+    #state transition 
+    #find new node to connect nearest to new
+	def step(self,nnear,nrand):
+		(xn,yn,thetan) = (nnear.x, nnear.y, nnear.theta)
+		(xran,yran,thetaran) = (nrand.x, nrand.y, nrand.theta)
+		
+		#compute all reachable states
+		xr=[]
+		yr=[]
+		thetar=[]
+		usp=[]
+		ust=[]
+		for i in self.uSpeed:
+			for j in self.uSteer:
+				usp.append(i)
+				ust.append(j)
+				(x,y,theta)=self.trajectory(xn,yn,thetan,j,i)
+				xr.append(x)
+				yr.append(y)
+				thetar.append(theta)
+				
+		#find a nearest reachable from nnear to nrand
+		dmin = ((((xran-xr[0][-1])**2)+((yran-yr[0][-1])**2))**(0.5))
+		near = 0
+		for i in range(1,len(xr)):
+			d = ((((xran-xr[i][-1])**2)+((yran-yr[i][-1])**2))**(0.5))
+			if d < dmin:
+				dmin= d
+				near = i
+        
+        #add the control to the control space for sampling 
+        add_sample_point(nrand,xr[near][-1],yr[near][-1],thetar[near][-1])
+        
+    #generate trajectory by integrating equations of motion			
+	def trajectory(self,xi,yi,thetai,ust,usp):
+		(x,y,theta)=([],[],[])
+		x.append(xi)
+		y.append(yi)
+		theta.append(thetai)
+		dt=0.01
+		for i in range(1,int(self.ut/dt)):
+			theta.append(theta[i-1]+usp*math.tan(ust)/1.9*dt)
+			x.append(x[i-1]+usp*math.cos(theta[i-1])*dt)
+			y.append(y[i-1]+usp*math.sin(theta[i-1])*dt)	
+		return (x,y,theta)
+		
 def get_translation_controls():
-    # generate a random x and y as controls for the translation part
+	#generate a random x and y as controls for the translation part
     translation = np.eye(2)
-    translation[0][2] = random.uniform(-9, 10)
-    translation[1][2] = random.uniform(-7.5, 6.5)
+    translation[0][2] = random.uniform(-9,10)
+    translation[1][2] = random.uniform(-7.5,6.5)
     return translation
-
-
+	
 def rand_quaternion_controls():
-    # generate a random angle for the rotation part
+    #generate a random angle for the rotation part
     theta = random.uniform(0, math.pi)
     return theta
-
 
 class Path:
 
@@ -289,8 +281,7 @@ class Path:
 
     def f(self, vertex, goal):
         vertex.f = vertex.edgeCost + self.h(vertex, goal)
-
-
+        
 class APath(Path):
 
     def __init__(self, graph):
@@ -362,7 +353,6 @@ class APath(Path):
         self.openSet.add(vector)
         pass
 
-
 """
 def send_to_gazebo(controls_of_ackermann, controls_in_path):
     rospy.init_node('move_robot_to_given_place')
@@ -401,24 +391,25 @@ def save_model_state(node):
     state_pub.publish(state)
 """
 
-
 def main():
-    # start for the robot is the bottom left of the maze and goal is the top right of the maze
-    start = Node(util.translation_matrix_delta(-9, -5, 0), util.random_theta())
-    goal = Node(util.translation_matrix_delta(9, 5, 0), util.random_theta())
+  #start for the robot is the bottom left of the maze and goal is the top right of the maze
+  start = Node(util.translation_matrix_delta(-9, -5, 0), util.random_theta())
+  goal = Node(util.translation_matrix_delta(9, 5, 0), util.random_theta())
+  
+  #create an RRT tree with a start node
+  rrt_tree=RoadMap(RRTtree(start, goal))
+  a_star = APath(rrt_tree)
+  graph = graph.tree
+  
+  controls_of_ackermann = rrt_tree
+  #run a star on the tree to get solution path
+  controls_in_path = a_star.findPath(start, goal)
+  path = map(lambda vertex: (vertex.getX(), vertex.getY(), controls_in_path))
+  print path
+  
+  #send_to_gazebo(controls_of_ackermann, controls_in_path)
 
-    # create an RRT tree with a start node
-    rrt_tree = RoadMap(RRTtree(start, goal))
-    a_star = APath(rrt_tree)
-    graph = rrt_tree.graph
-
-    controls_of_ackermann = rrt_tree
-    # run a star on the tree to get solution path
-    controls_in_path = a_star.findPath(start, goal)
-    path = map(lambda vertex: (vertex.getX(), vertex.getY(), controls_in_path))
-    print path
-
-    # send_to_gazebo(controls_of_ackermann, controls_in_path)
-
-    # each rrt node in the tree has a translation and rotation
-    # this translates to a pose and a twist for the ackermann vehicle model
+  #each rrt node in the tree has a translation and rotation
+  #this translates to a pose and a twist for the ackermann vehicle model
+  
+  
