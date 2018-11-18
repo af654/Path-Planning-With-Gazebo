@@ -256,6 +256,7 @@ class RRTtree():
         theta = thetar[near][-1]
         new_node = Node(translation, theta)
 
+        print("control added to the path", new_node.translation, new_node.theta)
         self.add_sample_point(new_node)
 
         #collision detection -> do later
@@ -436,7 +437,7 @@ def main():
     controls_of_ackermann = rrt_tree
     # run a star on the tree to get solution path
     controls_in_path = a_star.findPath(start, goal)
-    path = map(lambda vertex: (vertex.getX(), vertex.getY(), controls_in_path))
+    path = map(lambda vertex: (vertex.getX(), vertex.getY()),controls_in_path)
     print path
 
     # send_to_gazebo(controls_of_ackermann, controls_in_path)
