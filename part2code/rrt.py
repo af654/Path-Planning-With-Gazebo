@@ -190,7 +190,7 @@ class RRTtree():
     # find nearest node to random node previous_node
     def expand(self, new_node):
         graph = self.tree.graph  # type: nn.NearestNeighbors
-        close_neighbors = nn.pad_or_truncate([], util.FIXED_K, -1)
+        close_neighbors = nn.pad_or_truncate([], util.FIXED_K, None)
         neighbor_distance = nn.pad_or_truncate([], util.FIXED_K, sys.maxint)
         # find nearest node to new_node based on its neighbors
         num_neighbors = graph.find_k_close(new_node, close_neighbors, neighbor_distance, util.FIXED_K)
