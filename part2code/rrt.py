@@ -209,7 +209,7 @@ class RRTtree():
         theta = 0
         node_zero = Node(translation, theta)
         d_min = util.distance_controls(node_zero, new_node)
-        print d_min
+
         node_near = node_zero
         for i in range(0,num_neighbors):
             node = close_neighbors[i]
@@ -217,7 +217,6 @@ class RRTtree():
                 d_min = util.distance_controls(node, new_node)
                 node_near = node
 
-        print node_near
         return node_near
 
         # state transition
@@ -251,12 +250,13 @@ class RRTtree():
                 dmin = d
                 near = i
         
+        #add the control that gets you from nnear to nnew (the nearest reachable)
         translation = np.eye(2)
-        translation[0][1] = xr[0][-1]
-        translation[1][1] = yr[0][-1]
-        theta = thetar[0][-1]
+        translation[0][1] = xr[near][-1]
+        translation[1][1] = yr[near][-1]
+        theta = thetar[near][-1]
         new_node = Node(translation, theta)
-        print(new_node)
+
         self.add_sample_point(new_node)
 
         #collision detection -> do later
