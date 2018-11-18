@@ -3,8 +3,6 @@ import math
 import random
 import sys
 
-from prm import Quaternion
-
 FLOAT_EPS = numpy.finfo(numpy.float).eps
 
 BOUNDARY_MIN_X = -10

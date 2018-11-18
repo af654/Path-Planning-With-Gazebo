@@ -36,10 +36,9 @@ class Node(RelativePosition):
         self.parent = self
         self.edgeCost = 0
         self.f = 0
-	
-	    self.speed = 0
+        self.speed = 0
         #linear position
-	    self.theta = 0
+        self.theta = 0
         #angular position
         self.angular = 0
 
