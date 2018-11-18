@@ -212,8 +212,8 @@ class RRTtree():
             node = close_neighbors[i]
             if util.distance_controls(node, new_node) < d_min:
                 d_min = util.distance_controls(node, new_node)
-                node_near = i
-                
+                node_near = node
+
         print node_near
         return node_near
 
