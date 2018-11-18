@@ -194,16 +194,17 @@ class RRTtree():
         neighbor_distance = nn.pad_or_truncate([], util.FIXED_K, sys.maxint)
         # find nearest node to new_node based on its neighbors
         num_neighbors = graph.find_k_close(new_node, close_neighbors, neighbor_distance, util.FIXED_K)
-        node_near = self.near(num_neighbors, new_node)
+        node_near = self.near(close_neighbors,num_neighbors, new_node)
         self.step(node_near, new_node)
 
     # returns the index of the nearest node within num_neighbors to new_node
-    def near(self, num_neighbors, new_node):
+    def near(self, close_neighbors,num_neighbors, new_node):
         d_min = util.distance_controls(0, new_node)
         node_near = 0
-        for i in num_neighbors:
-            if util.distance_controls(i, new_node) < d_min:
-                d_min = util.distance_controls(i, new_node)
+        for i in range(0,num_neighbors):
+            node = close_neighbors[i]
+            if util.distance_controls(node, new_node) < d_min:
+                d_min = util.distance_controls(node, new_node)
                 node_near = i
         return node_near
 
