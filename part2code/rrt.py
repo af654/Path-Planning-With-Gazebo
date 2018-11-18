@@ -70,10 +70,10 @@ class Node(RelativePosition):
         self.angular = 0
 
     def getX(self):
-        return self.translation[0][2]
+        return self.translation[0][1]
 
     def getY(self):
-        return self.translation[1][2]
+        return self.translation[1][1]
 
     def set_index(self, index):
         self.index = index
