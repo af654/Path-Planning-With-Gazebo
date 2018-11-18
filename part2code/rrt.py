@@ -239,8 +239,8 @@ class RRTtree():
                 near = i
         
         translation = np.eye(2)
-        translation[0][2] = xr[0][-1]
-        translation[0][1] = yr[0][-1]
+        translation[0][1] = xr[0][-1]
+        translation[1][1] = yr[0][-1]
         theta = thetar[0][-1]
         new_node = Node(translation, theta)
         self.add_sample_point(new_node)
@@ -264,8 +264,8 @@ class RRTtree():
 def get_translation_controls():
     # generate a random x and y as controls for the translation part
     translation = np.eye(2)
-    translation[0][2] = random.uniform(-9, 10)
-    translation[1][2] = random.uniform(-7.5, 6.5)
+    translation[0][1] = random.uniform(-9, 10)
+    translation[1][1] = random.uniform(-7.5, 6.5)
     return translation
 
 
@@ -411,14 +411,11 @@ def save_model_state(node):
     state_pub.publish(state)
 """
 
-
 def main():
     # start for the robot is the bottom left of the maze and goal is the top right of the maze
     start = Node(util.translation_matrix_delta(-9, -5, 0), util.random_theta())
     goal = Node(util.translation_matrix_delta(9, 5, 0), util.random_theta())
 
-    print start
-    print goal
     # create an RRT tree with a start node
     rrt_tree = RoadMap(RRTtree(start, goal))
     a_star = APath(rrt_tree)
