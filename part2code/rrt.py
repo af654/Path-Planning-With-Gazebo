@@ -8,7 +8,8 @@ import math
 import random
 import sys
 from abc import abstractmethod
-
+from matplotlib import pyplot
+from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
 import nearest_neighbors as nn
@@ -440,6 +441,19 @@ def main():
     path = map(lambda vertex: (vertex.getX(), vertex.getY()),controls_in_path)
     print path
 
+    traversed_sum = 0
+    node_prev = None
+    
+    for node in graph.nodes:
+        traversed_sum += node.nr_neighbors
+
+        print node.f
+        if node_prev is not None:
+            pyplot.plot([node.getX(), node_prev.getX()], [node.getY(), node_prev.getY()], 'ro-', color='yellow')
+
+        node_prev = node
+
+    pyplot.show()
     # send_to_gazebo(controls_of_ackermann, controls_in_path)
 
     # each rrt node in the tree has a translation and rotation
