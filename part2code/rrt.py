@@ -8,6 +8,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import random
+import util
+import nearest_neighbors as nn
+#import pqp_ros_client_ours as pqp
+from gazebo_msgs.msg import ModelState, ModelStates
+from geometry_msgs.msg import Point, Pose, Twist
+import rospy
+from std_msgs.msg import String
+from gazebo_msgs.srv import SetModelState
+from std_msgs.msg import Empty as EmptyMsg
+from std_srvs.srv import Empty as EmptySrv
 
 #node limit
 nmax = 2000
@@ -26,18 +36,17 @@ class Node(RelativePosition):
         self.edgeCost = 0
         self.f = 0
 	
-	self.speed = 0
-	self.linear = 0
-	self.angular = 0
+	    self.speed = 0
+        #linear position
+	    self.theta = 0
+        #angular position
+        self.angular = 0
 
     def getX(self):
-        return self.translation[0][3]
+        return self.translation[0][2]
 
     def getY(self):
-        return self.translation[1][3]
-
-    def getZ(self):
-        return self.translation[2][3]
+        return self.translation[1][2]
 
     def set_index(self, index):
         self.index = index
@@ -99,58 +108,14 @@ class Node(RelativePosition):
             return -1
         return cmp((self.f, self.f - sys.maxunicode * self.edgeCost),
                    (other.f, other.f - sys.maxunicode * other.edgeCost))
-
-class Quaternion:
-
-    def __init__(self, x, y, z, w):
-        self.x = x
-        self.y = y
-        self.z = z
-        self.w = w
-
-    # distance function that helps determine distance from sample point a to b in a neighborhood of collision free
-    # points
-    def distance_quaternion(self, q2):
-        return 1 - math.pow(2, self.dot(q2))
-
-    def dot(self, other):
-        return self.x * other.x + self.y * other.y + self.z * other.z + self.w * other.w
-
-    def mult(self, other):
-        self.x = (other.w * self.x + other.x * self.w + other.y * self.z - other.z * self.y)
-        self.y = (other.w * self.y - other.x * self.z + other.y * self.w + other.z * self.x)
-        self.z = (other.w * self.z + other.x * self.y - other.y * self.x + other.z * self.w)
-        self.w = (other.w * self.w - other.x * self.x - other.y * self.y - other.z * self.z)
-        pass
-
-    def as_rotation_matrix(self):
-        w, x, y, z = self.w, self.x, self.y, self.z
-        Nq = w * w + x * x + y * y + z * z
-        if Nq < util.FLOAT_EPS:
-            return numpy.eye(3)
-        s = 2.0 / Nq
-        X = x * s
-        Y = y * s
-        Z = z * s
-        wX = w * X
-        wY = w * Y
-        wZ = w * Z
-        xX = x * X
-        xY = x * Y
-        xZ = x * Z
-        yY = y * Y
-        yZ = y * Z
-        zZ = z * Z
-        return numpy.array(
-            [[1.0 - (yY + zZ), xY - wZ, xZ + wY],
-             [xY + wZ, 1.0 - (xX + zZ), yZ - wX],
-             [xZ - wY, yZ + wX, 1.0 - (xX + yY)]])
       
-# class that defines a node in se(3)
+# class that defines a node in se(2)
 class RelativePosition:
 
     def __init__(self, translation, rotation):
-        # need 7 dimensional node because of quaternion definition
+        #only a 4 dimensional control space
+        #we are feeding linear and angular velocity as the twist to the robot 
+        #and x and y as the pose to the robot
 
         self.translation = translation
         self.rotation = rotation
@@ -165,76 +130,123 @@ class RelativePosition:
     def transform_multi(self, translations):
         points = self.translation
         for trans in translations:
-            points = numpy.dot(points, trans)
+            points = np.dot(points, trans)
         return points
 
 class RoadMap:
     def __init__(self, tree):
-        self.graph = nn.NearestNeighbors(util.distance)
+        self.graph = nn.NearestNeighbors(util.distance_controls)
 
-        tree.tree = self
+        tree.tree_of_controls = self
         tree.populate()
-        tree.connect(self.graph.nr_nodes, self.graph.nodes)
-
-        self.tree = tree
+       # tree.connect(self.graph.nr_nodes, self.graph.nodes)
 	
 class RRTtree(start, goal):
-  def __init__(self, start, goal):
-        # need 7 dimensional node because of quaternion definition
+    def __init__(self, start, goal):
         self.start = start
-	add_sample_point(start)
         self.goal = goal
-	
-  def populate():
-	previous_node = self.start
-	for i in range(0,nmax):
-		#go through controls
-		save_model_state(previous_node)
-		
-		translation, rotation = self.get_sample_point(previous_node)
-		new_node = Node(translation, rotation)
-		self.add_sample_point(new_node)
-		previous_node = new_node
-		
-		save_model_state(new_node)
-		
-	add_sample_point(self.goal)
-	
-  #get the nearest sample point to the previous point (xnew based on xnear)
-  def get_sample_point(previous_node):
-	#need a new translation method that translates according to the angle and time
-	translation = get_translation_controls(previous_node)
-	rotation = rand_quaternion_controls(previous_node)
-	return translation, rotation
 
-  def add_sample_point(self, node):
-	if node in self.tree.graph.nodes:
+        #this is here for testing purposes - need to get rid of and add gazebo integration
+        self.uSpeed = [2, 1, 0.5, 0.25 ]
+		self.uSteer = [math.pi/-6.0,math.pi/-12.0,math.pi/-18.0, 0.0, math.pi/6.0,math.pi/12.0,math.pi/18.0]
+		self.ut = 1
+	
+    #function that populates the rrt with controls
+    def populate():
+        previous_node = self.start
+        for i in range(0,nmax):
+            #populate the sample space with a random control with a random duration
+            #add random node
+		    translation, rotation = self.get_sample_point()
+		    new_node = Node(translation, rotation)
+		    self.add_sample_point(new_node)
+
+            #find nearest node to random node previous_node
+		    previous_node = new_node
+            expand(new_node)
+
+            self.remove_sample_point(new_node)
+	
+    #get the nearest sample point to the previous point (xnew based on xnear)
+    def get_sample_point()):
+	    translation = get_translation_controls()
+	    rotation = rand_quaternion_controls()
+	    return translation, rotation
+
+    def add_sample_point(self, node):
+	    if node in self.tree.graph.nodes:
             return
         self.tree.graph.add_node(node)
+
+    def remove_sample_point(self, node):
+        nodes = self.tree.graph.nodes
+        for i in nodes:
+            if(node == nn.nodes[i]):
+                #TODO: remove random point from the control space
         
-  #expand a random point
-  #calls subroutines to find nearest node and connect it
-  def expand (self):
-	#add random node
-	x = random.uniform (E.xmin, E.xmax)
-	y = random.uniform (E.ymin, E.ymax)
-	theta = random.uniform (0, math.pi)
-	n= self.number_of_nodes() #new node number
-	self.add_node(n,x,y,theta)
- 
-        if E.isfree()!=0:
-            #find nearest node
-	    nnear = self.near(n)
-	    #find new node based on the transition equation
-	    self.step(nnear,n)
+    #calls subroutines to find nearest node and connect it
+    def expand (self, new_node):
+        graph = self.tree.graph  # type: nn.NearestNeighbors
+        close_neighbors = nn.pad_or_truncate([], util.FIXED_K, -1)
+        neighbor_distance = nn.pad_or_truncate([], util.FIXED_K, sys.maxint)
+        #find nearest node
+        num_neighbors = graph.find_k_close(node, close_neighbors, neighbor_distance, util.FIXED_K)
+        node_near = self.near(num_neighbors, new_node)
+	    #find new node to connect nearest to new
+	    self.step(node_near,new_node)
+
+    #returns the index of the nearest node within num_neighbors to new_node
+    def near(num_neighbors, new_node):
+        d_min = self.distance_controls(0,new_node)
+        node_near
+            for i in num_neighbors:
+                if self.distance_controls(i,new_node) < dmin:
+                    dmin=self.distance_controls(i,new_node)
+                    node_near = i
+        return node_near
+
+    #state transition 
+	def step(self,nnear,nrand):
+		(xn,yn,thetan) = (nnear.x, nnear.y, nnear.theta)
+		(xran,yran,thetaran) = (nrand.x, nrand.y, nrand.theta)
 		
-def get_translation_controls(previous_node):
-	pass
-	#TODO: fix this method so that we propogate new controls based on the previous node
+		#compute all reachable states
+		xr=[]
+		yr=[]
+		thetar=[]
+		usp=[]
+		ust=[]
+		for i in self.uSpeed:
+			for j in self.uSteer:
+				usp.append(i)
+				ust.append(j)
+				(x,y,theta)=self.trajectory(xn,yn,thetan,j,i)
+				xr.append(x)
+				yr.append(y)
+				thetar.append(theta)
+				
+		#find a nearest reachable from nnear to nrand
+		dmin = ((((xran-xr[0][-1])**2)+((yran-yr[0][-1])**2))**(0.5))
+		near = 0
+		for i in range(1,len(xr)):
+			d = ((((xran-xr[i][-1])**2)+((yran-yr[i][-1])**2))**(0.5))
+			if d < dmin:
+				dmin= d
+				near = i
+        
+        #add the control to the control space for sampling 
+        add_sample_point(nrand,xr[near][-1],yr[near][-1],thetar[near][-1])
+		
+def get_translation_controls():
+	#generate a random x and y as controls for the translation part
+    translation = numpy.eye(2)
+    translation[0][2] = random.uniform(-9,10)
+    translation[1][2] = random.uniform(-7.5,6.5)
+    return translation
 	
-def rand_quaternion_controls(previous_node):
-	pass
-	#TODO: fix this method so that we propogate new controls based on the previous node
+def rand_quaternion_controls():
+    #generate a random angle for the rotation part
+    theta = random.uniform(0, math.pi)
 
 def send_to_gazebo(controls_of_ackermann, controls_in_path):
     rospy.init_node('move_robot_to_given_place')
@@ -280,11 +292,11 @@ def save_model_state(node):
 
 def main():
   #start for the robot is the bottom left of the maze and goal is the top right of the maze
-  start = Node(util.translation_matrix_delta(0, 3, 0), util.rand_quaternion())
-  goal = Node(util.translation_matrix_delta(5, 5, 0), Quaternion(0, 0, 0, 0))
+  start = Node(util.translation_matrix_delta(-9, -5, 0), Quaternion(0,0,0,0))
+  goal = Node(util.translation_matrix_delta(9, 5, 0), Quaternion(0,0,0,0))
   
   #create an RRT tree with a start node
-  rrt_tree=Road_Map(RRTtree(start, goal))
+  rrt_tree=RoadMap(RRTtree(start, goal))
   
   controls_of_ackermann = rrt_tree
   #run a star on the tree to get solution path
