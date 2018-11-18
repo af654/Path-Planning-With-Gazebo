@@ -256,7 +256,7 @@ class RRTtree():
         theta = thetar[near][-1]
         new_node = Node(translation, theta)
 
-        print("control added to the path",translation[0][1],translation[1][1] theta)
+        print("control added to the path",translation[0][1],translation[1][1],theta)
         self.add_sample_point(new_node)
 
         #collision detection -> do later
