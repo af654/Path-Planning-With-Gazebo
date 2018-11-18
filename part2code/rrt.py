@@ -444,10 +444,8 @@ def main():
     traversed_sum = 0
     node_prev = None
 
-    for node in graph.nodes:
-        traversed_sum += node.nr_neighbors
-
-        print node.f
+    for i in range(0, graph.nr_nodes):
+        node = graph.nodes[i]
         if node_prev is not None:
             pyplot.plot([node.getX(), node_prev.getX()], [node.getY(), node_prev.getY()], 'ro-', color='yellow')
 
