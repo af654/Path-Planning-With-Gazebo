@@ -11,17 +11,14 @@ import random
 import util
 import nearest_neighbors as nn
 #import pqp_ros_client_ours as pqp
-from gazebo_msgs.msg import ModelState, ModelStates
-from geometry_msgs.msg import Point, Pose, Twist
-import rospy
-from std_msgs.msg import String
-from gazebo_msgs.srv import SetModelState
-from std_msgs.msg import Empty as EmptyMsg
-from std_srvs.srv import Empty as EmptySrv
+#from gazebo_msgs.msg import ModelState, ModelStates
+#from geometry_msgs.msg import Point, Pose, Twist
+#import rospy
+#from std_msgs.msg import String
+#from gazebo_msgs.srv import SetModelState
 
 #node limit
-nmax = 2000
-SPEEDS = [-1,0,1]
+nmax = 3000
 
 class Node(RelativePosition):
     def __init__(self, translation, theta):
@@ -36,7 +33,7 @@ class Node(RelativePosition):
         self.parent = self
         self.edgeCost = 0
         self.f = 0
-        self.speed = 0
+
         #linear position
         self.theta = 0
         #angular position
@@ -147,7 +144,7 @@ class RRTtree(start, goal):
         self.goal = goal
 
         #this is here for testing purposes - need to get rid of and add gazebo integration
-        self.uSpeed = [2, 1, 0.5, 0.25 ]
+        self.uSpeed = [-1,0,1]
         self.uSteer = [math.pi/-6.0,math.pi/-12.0,math.pi/-18.0, 0.0, math.pi/6.0,math.pi/12.0,math.pi/18.0]
         self.ut = 1
 	
@@ -177,18 +174,15 @@ class RRTtree(start, goal):
         self.tree.graph.add_node(node)
 
     def remove_sample_point(self, node):
-        nodes = self.tree.graph.nodes
-        for i in nodes:
-            if(node == nn.nodes[i]):
-                #TODO: remove random point from the control space
+        self.tree.graph.remove_node(node)
         
     #calls subroutines to find nearest node and connect it
     def expand (self, new_node):
         graph = self.tree.graph  # type: nn.NearestNeighbors
         close_neighbors = nn.pad_or_truncate([], util.FIXED_K, -1)
         neighbor_distance = nn.pad_or_truncate([], util.FIXED_K, sys.maxint)
-        #find nearest node
-        num_neighbors = graph.find_k_close(node, close_neighbors, neighbor_distance, util.FIXED_K)
+        #find nearest node to new_node based on its neighbors
+        num_neighbors = graph.find_k_close(new_node, close_neighbors, neighbor_distance, util.FIXED_K)
         node_near = self.near(num_neighbors, new_node)
 	    #find new node to connect nearest to new
 	    self.step(node_near,new_node)
@@ -259,6 +253,77 @@ def rand_quaternion_controls():
     #generate a random angle for the rotation part
     theta = random.uniform(0, math.pi)
 
+class APath(Path):
+
+    def __init__(self, graph):
+        Path.__init__(self, graph)
+        self.heap = []
+        self.openSet = set()
+
+    def findPath(self, start, goal):
+        graph = self.road_map.graph
+
+        end_points = [start, goal]
+        graph.add_nodes(end_points, 2)
+        self.road_map.sampler.connect(2, end_points)
+
+        closed = set()
+
+        start.reset()
+        goal.reset()
+
+        self.openSet = set()
+        self.heap = []
+        heapq.heapify(self.heap)
+
+        heapq.heappush(self.heap, start)
+        self.openSet.add(start)
+        start.f = start.edgeCost + self.h(start, goal)
+
+        while len(self.heap) > 0:
+            vertex = heapq.heappop(self.heap)
+
+            if vertex == goal:
+                graph.remove_node(start)
+                graph.remove_node(goal)
+                return util.pathFromGoal(vertex, start)
+
+            closed.add(vertex)
+
+            for index in range(0, vertex.nr_neighbors):
+                neighbor = graph.nodes[vertex.neighbors[index]]
+                if neighbor not in closed:
+                    if neighbor not in self.openSet:
+                        neighbor.edgeCost = sys.maxint
+                        neighbor.parent = None
+                    self.updateVertex(vertex, neighbor, goal)
+
+        graph.remove_node(start)
+        graph.remove_node(goal)
+        return []
+
+    def updateVertex(self, vertex, neighbor, goal):
+        if vertex.edgeCost + Path.c(vertex, neighbor) < neighbor.edgeCost:
+            neighbor.edgeCost = vertex.edgeCost + Path.c(vertex, neighbor)
+            neighbor.parent = vertex
+            if neighbor in self.openSet:
+                self.remove(neighbor)
+            self.f(neighbor, goal)
+            self.add(neighbor)
+
+    def remove(self, vector):
+        self.openSet.remove(vector)
+        try:
+            self.heap.remove(vector)
+            heapq.heapify(self.heap)
+        except ValueError:
+            pass
+
+    def add(self, vector):
+        heapq.heappush(self.heap, vector)
+        self.openSet.add(vector)
+        pass
+
 def send_to_gazebo(controls_of_ackermann, controls_in_path):
     rospy.init_node('move_robot_to_given_place')
     print "hello world 2\n"
@@ -302,12 +367,18 @@ def main():
   
   #create an RRT tree with a start node
   rrt_tree=RoadMap(RRTtree(start, goal))
+  a_star = APath(rrt_tree)
+  graph = tree.graph
   
   controls_of_ackermann = rrt_tree
   #run a star on the tree to get solution path
-  controls_in_path = rrt_tree.findPath(start, goal)
+  controls_in_path = a_star.findPath(start, goal)
+  path = map(lambda vertex: (vertex.getX(), vertex.getY(), controls_in_path)
+
+  print(path)
   
-  send_to_gazebo(controls_of_ackermann, controls_in_path)
+  #send_to_gazebo(controls_of_ackermann, controls_in_path)
+
   #each rrt node in the tree has a translation and rotation
   #this translates to a pose and a twist for the ackermann vehicle model
   

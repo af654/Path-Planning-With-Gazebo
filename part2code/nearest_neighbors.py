@@ -25,7 +25,6 @@ def resort_proximity_nodes(close_nodes, distances, index):
 def pad_or_truncate(node_list, length, default):
     return node_list[:length] + [default] * (length - len(node_list))
 
-
 class NearestNeighbors:
 
     def __init__(self, distance_function):
