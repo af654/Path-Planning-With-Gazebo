@@ -199,15 +199,22 @@ class RRTtree():
 
     # returns the index of the nearest node within num_neighbors to new_node
     def near(self, close_neighbors,num_neighbors, new_node):
-        d_min = util.distance_controls(0, new_node)
+        #find a near node
+        translation = np.eye(2)
+        translation[0][1] = 0
+        translation[1][1] = 0
+        theta = 0
+        node_zero = Node(translation, theta)
+        d_min = util.distance_controls(node_zero, new_node)
+        print d_min
         node_near = 0
         for i in range(0,num_neighbors):
             node = close_neighbors[i]
-            print node.getX()
-            print node.getY()
             if util.distance_controls(node, new_node) < d_min:
                 d_min = util.distance_controls(node, new_node)
                 node_near = i
+                
+        print node_near
         return node_near
 
         # state transition
