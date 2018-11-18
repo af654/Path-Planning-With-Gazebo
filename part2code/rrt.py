@@ -171,7 +171,7 @@ class RRTtree():
             self.add_sample_point(new_node)
             previous_node = new_node
             self.expand(new_node)
-            self.remove_sample_point(new_node)
+            #self.remove_sample_point(new_node)
 
     # get the nearest sample point to the previous point (xnew based on xnear)
 
@@ -217,7 +217,7 @@ class RRTtree():
                 node_near = node
 
         return node_near
-
+        
         # state transition
         # find new node to connect nearest to new
 
@@ -249,9 +249,12 @@ class RRTtree():
                 dmin = d
                 near = i
 
+        self.remove_sample_point(nrand)
+
         #collision detection
-		cd = False
-		for i in range(0,len(xr[near])):
+
+        cd = False
+        for i in range(0,len(xr[near])):
 			if collision_with_wall(xr[near][i],yr[near][i])==0:
 				cd = True
                 #collision so dont add it
