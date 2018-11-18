@@ -139,7 +139,6 @@ class Node(RelativePosition):
         return cmp((self.f, self.f - sys.maxunicode * self.edgeCost),
                    (other.f, other.f - sys.maxunicode * other.edgeCost))
 
-
 class RoadMap:
     def __init__(self, tree_1):
         self.graph = nn.NearestNeighbors(util.distance_controls)
@@ -249,18 +248,24 @@ class RRTtree():
             if d < dmin:
                 dmin = d
                 near = i
-        
+
+        #collision detection
+		cd = False
+		for i in range(0,len(xr[near])):
+			if collision_with_wall(xr[near][i],yr[near][i])==0:
+				cd = True
+                #collision so dont add it
+				break
+
         #add the control that gets you from nnear to nnew (the nearest reachable)
-        translation = np.eye(2)
-        translation[0][1] = xr[near][-1]
-        translation[1][1] = yr[near][-1]
-        theta = thetar[near][-1]
-        new_node = Node(translation, theta)
-
-        print("control added to the path",translation[0][1],translation[1][1],theta)
-        self.add_sample_point(new_node)
-
-        #collision detection -> do later
+        if cd==False:
+            translation = np.eye(2)
+            translation[0][1] = xr[near][-1]
+            translation[1][1] = yr[near][-1]
+            theta = thetar[near][-1]
+            new_node = Node(translation, theta)
+            print("control added to the path",translation[0][1],translation[1][1],theta)
+            self.add_sample_point(new_node)
 
     # generate trajectory by integrating equations of motion
     def trajectory(self, xi, yi, thetai, ust, usp):
@@ -275,6 +280,28 @@ class RRTtree():
             y.append(y[i - 1] + usp * math.sin(theta[i - 1]) * dt)
         return (x, y, theta)
 
+#collision_with_wall(xr[near][i],yr[near][i])
+#check for a specific node
+def collision_with_wall(x,y):
+    #four vertices for each rectangular obstacle
+    obs_num = len(x)/4
+    for i in range(1,obs_num+1):
+        xomin=x[4*(i-1)]
+        xomax=x[4*(i-1)+2]
+        yomin=y[4*(i-1)]
+        yomax=y[4*(i-1)+1]
+        if (x>=xomin) and (x<=xomax) and (y>=yomin) and (y<=yomax):
+            return 0
+            break
+        elif (x<6.3) and (x>6) and (y<2.9) and (y>-4.2):
+			return 0
+			break
+        elif (x<1.5) and (x>1.2) and (y<6.5) and (y>-1.5):
+			return 0
+			break
+        elif (x<-4.2) and (x>-4.5) and (y<1) and (y>-7.5):
+			return 0
+			break
 
 def get_translation_controls():
     # generate a random x and y as controls for the translation part
@@ -283,12 +310,10 @@ def get_translation_controls():
     translation[1][1] = random.uniform(-7.5, 6.5)
     return translation
 
-
 def rand_quaternion_controls():
     # generate a random angle for the rotation part
     theta = random.uniform(0, math.pi)
     return theta
-
 
 class Path:
 
@@ -441,7 +466,6 @@ def main():
     path = map(lambda vertex: (vertex.getX(), vertex.getY()),controls_in_path)
     print path
 
-    traversed_sum = 0
     node_prev = None
 
     for i in range(0, graph.nr_nodes):
