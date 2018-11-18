@@ -287,6 +287,7 @@ class RRTtree():
 #check for a specific node
 def collision_with_wall(x,y):
     print x
+    print y
     #four vertices for each rectangular obstacle
     obs_num = len(x)/4
     for i in range(1,obs_num+1):
