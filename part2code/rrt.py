@@ -286,8 +286,9 @@ class RRTtree():
 #collision_with_wall(xr[near][i],yr[near][i])
 #check for a specific node
 def collision_with_wall(x,y):
+    print x
     #four vertices for each rectangular obstacle
-    obs_num = 4
+    obs_num = len(x)/4
     for i in range(1,obs_num+1):
         xomin=x[4*(i-1)]
         xomax=x[4*(i-1)+2]
