@@ -433,7 +433,7 @@ def main():
     # create an RRT tree with a start node
     rrt_tree = RoadMap(RRTtree(start, goal))
     a_star = APath(rrt_tree)
-    graph = rrt_tree.tree
+    graph = rrt_tree.graph
 
     controls_of_ackermann = rrt_tree
     # run a star on the tree to get solution path
@@ -443,7 +443,7 @@ def main():
 
     traversed_sum = 0
     node_prev = None
-    
+
     for node in graph.nodes:
         traversed_sum += node.nr_neighbors
 
