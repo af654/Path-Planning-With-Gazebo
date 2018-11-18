@@ -417,6 +417,8 @@ def main():
     start = Node(util.translation_matrix_delta(-9, -5, 0), util.random_theta())
     goal = Node(util.translation_matrix_delta(9, 5, 0), util.random_theta())
 
+    print start
+    print goal
     # create an RRT tree with a start node
     rrt_tree = RoadMap(RRTtree(start, goal))
     a_star = APath(rrt_tree)
