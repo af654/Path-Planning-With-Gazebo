@@ -234,6 +234,19 @@ class RRTtree(start, goal):
         
         #add the control to the control space for sampling 
         add_sample_point(nrand,xr[near][-1],yr[near][-1],thetar[near][-1])
+        
+    #generate trajectory by integrating equations of motion			
+	def trajectory(self,xi,yi,thetai,ust,usp):
+		(x,y,theta)=([],[],[])
+		x.append(xi)
+		y.append(yi)
+		theta.append(thetai)
+		dt=0.01
+		for i in range(1,int(self.ut/dt)):
+			theta.append(theta[i-1]+usp*math.tan(ust)/1.9*dt)
+			x.append(x[i-1]+usp*math.cos(theta[i-1])*dt)
+			y.append(y[i-1]+usp*math.sin(theta[i-1])*dt)	
+		return (x,y,theta)
 		
 def get_translation_controls():
 	#generate a random x and y as controls for the translation part
