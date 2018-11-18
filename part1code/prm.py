@@ -555,8 +555,8 @@ def main():
     for node in verticies_in_path:
         traversed_sum += node.nr_neighbors
 
+        print node.f
         if node_prev is not None:
-            print util.distance(node, node_prev)
             pyplot.plot([node.getX(), node_prev.getX()], [node.getY(), node_prev.getY()],
                         [node.getZ(), node_prev.getZ()], 'ro-', color='yellow')
 
