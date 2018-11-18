@@ -236,7 +236,15 @@ class RRTtree():
             if d < dmin:
                 dmin = d
                 near = i
-        self.add_sample_point(nrand, xr[near][-1], yr[near][-1], thetar[near][-1])
+        
+        translation = np.eye(2)
+        translation[0][2] = xr[0][-1]
+        translation[0][1] = yr[0][-1]
+        theta = thetar[0][-1]
+        new_node = Node(translation, theta)
+        self.add_sample_point(new_node)
+
+        #collision detection -> do later
 
     # generate trajectory by integrating equations of motion
     def trajectory(self, xi, yi, thetai, ust, usp):
