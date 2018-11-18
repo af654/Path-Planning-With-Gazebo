@@ -80,6 +80,9 @@ class Node(RelativePosition):
 
     def get_index(self):
         return self.index
+    
+    def get_theta(self):
+        return self.theta
 
     def get_neighbors(self):
         return self.nr_neighbors, self.neighbors
@@ -221,8 +224,8 @@ class RRTtree():
         # find new node to connect nearest to new
 
     def step(self, nnear, nrand):
-        (xn, yn, thetan) = (nnear.x, nnear.y, nnear.theta)
-        (xran, yran, thetaran) = (nrand.x, nrand.y, nrand.theta)
+        (xn, yn, thetan) = (nnear.getX(), nnear.getY(), nnear.get_theta())
+        (xran, yran, thetaran) = (nrand.getX(), nrand.getY(), nrand.get_theta())
 
         # compute all reachable states
         xr = []
@@ -253,6 +256,7 @@ class RRTtree():
         translation[1][1] = yr[0][-1]
         theta = thetar[0][-1]
         new_node = Node(translation, theta)
+        print(new_node)
         self.add_sample_point(new_node)
 
         #collision detection -> do later
