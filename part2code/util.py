@@ -190,3 +190,7 @@ def translation_delta_theta(theta, dx, dy, dz):
         0, 0, 0, 1
     )
     return rotational
+
+def random_theta():
+    theta = random.uniform(0, math.pi)
+    return theta

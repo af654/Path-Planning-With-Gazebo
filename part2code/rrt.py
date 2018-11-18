@@ -24,8 +24,9 @@ nmax = 2000
 SPEEDS = [-1,0,1]
 
 class Node(RelativePosition):
-    def __init__(self, translation, rotation):
-        RelativePosition.__init__(self, translation, rotation)
+    def __init__(self, translation, theta):
+        #rotation is just theta since we are sampling only controls
+        RelativePosition.__init__(self, translation, theta)
         self.neighbors = nn.pad_or_truncate([], nn.INIT_CAP_NEIGHBORS, -1)
         self.nr_neighbors = 0
         self.added_index = 0
@@ -112,17 +113,17 @@ class Node(RelativePosition):
 # class that defines a node in se(2)
 class RelativePosition:
 
-    def __init__(self, translation, rotation):
+    def __init__(self, translation, theta):
         #only a 4 dimensional control space
         #we are feeding linear and angular velocity as the twist to the robot 
         #and x and y as the pose to the robot
 
         self.translation = translation
-        self.rotation = rotation
+        self.theta = theta
 
     @classmethod
     def from_relative_position(cls, relative_position):
-        return RelativePosition(relative_position.translation, relative_position.rotation)
+        return RelativePosition(relative_position.translation, relative_position.theta)
 
     def transform(self, trans):
         return self.transform_multi([trans])
@@ -157,8 +158,8 @@ class RRTtree(start, goal):
         for i in range(0,nmax):
             #populate the sample space with a random control with a random duration
             #add random node
-		    translation, rotation = self.get_sample_point()
-		    new_node = Node(translation, rotation)
+		    translation, theta = self.get_sample_point()
+		    new_node = Node(translation, theta)
 		    self.add_sample_point(new_node)
 
             #find nearest node to random node previous_node
@@ -170,8 +171,8 @@ class RRTtree(start, goal):
     #get the nearest sample point to the previous point (xnew based on xnear)
     def get_sample_point()):
 	    translation = get_translation_controls()
-	    rotation = rand_quaternion_controls()
-	    return translation, rotation
+	    theta = rand_quaternion_controls()
+	    return translation, theta
 
     def add_sample_point(self, node):
 	    if node in self.tree.graph.nodes:
@@ -271,15 +272,9 @@ def save_model_state(node):
 
     pose.position.x = node.getX()
     pose.position.y = node.getY()
-    pose.position.z = node.getZ()
-
-    pose.orientation.x = node.rotation.x
-    pose.orientation.y = node.rotation.y
-    pose.orientation.z = node.rotation.z
-    pose.orientation.w = node.rotation.w
    
-    twist.linear = node.linear
-    twist.angular = node.angular
+    twist.linear = node.theta
+    #twist.angular = node.angular
 
     state = ModelState()
 
@@ -292,8 +287,8 @@ def save_model_state(node):
 
 def main():
   #start for the robot is the bottom left of the maze and goal is the top right of the maze
-  start = Node(util.translation_matrix_delta(-9, -5, 0), Quaternion(0,0,0,0))
-  goal = Node(util.translation_matrix_delta(9, 5, 0), Quaternion(0,0,0,0))
+  start = Node(util.translation_matrix_delta(-9, -5, 0), util.random_theta())
+  goal = Node(util.translation_matrix_delta(9, 5, 0), util.random_theta())
   
   #create an RRT tree with a start node
   rrt_tree=RoadMap(RRTtree(start, goal))
