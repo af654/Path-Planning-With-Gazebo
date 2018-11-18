@@ -20,7 +20,7 @@ from gazebo_msgs.srv import SetModelState
 from geometry_msgs.msg import PoseWithCovarianceStamped
 from std_msgs.msg import Empty as EmptyMsg
 from std_srvs.srv import Empty as EmptySrv
-
+from datetime import datetime
 
 # class that defines a node in se(3)
 class RelativePosition:
@@ -525,6 +525,7 @@ def reposition_robot(vertex):
 
 
 def main():
+    startTime = datetime.now()
     road_map = RoadMap(AsymptoticPRM())
     fda = APath(road_map)
     graph = road_map.graph
@@ -591,6 +592,7 @@ def main():
     ax.scatter([start.getX()], [start.getY()], [start.getZ()], color='red', marker='o', zorder=5)
     ax.scatter([goal.getX()], [goal.getY()], [goal.getZ()], color='blue', marker='o', zorder=0)
 
+    print datetime.now() - startTime 
     pyplot.show()
 
     send_to_gazebo(verticies_in_path, path)
