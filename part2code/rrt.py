@@ -434,3 +434,6 @@ def main():
 
     # each rrt node in the tree has a translation and rotation
     # this translates to a pose and a twist for the ackermann vehicle model
+
+if __name__ == "__main__":
+    main()
