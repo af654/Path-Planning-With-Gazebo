@@ -3,13 +3,16 @@ Path Planning with Kinodynamic Randomized Rapidly-Exploring Random Trees (RRT) f
 Goal: Get a big enough RRT tree of nodes for the Ackermann robot to find a path from the bottom left to top right of the maze
 Nodes represent controls of the Ackermann vehicle
 """
-
+from abc import abstractmethod
 import numpy as np
 import matplotlib.pyplot as plt
 import math
 import random
+import heapq
 import util
 import nearest_neighbors as nn
+import sys
+from datetime import datetime
 #import pqp_ros_client_ours as pqp
 #from gazebo_msgs.msg import ModelState, ModelStates
 #from geometry_msgs.msg import Point, Pose, Twist
@@ -19,6 +22,30 @@ import nearest_neighbors as nn
 
 #node limit
 nmax = 3000
+
+# class that defines a node in se(2)
+class RelativePosition:
+
+    def __init__(self, translation, theta):
+        #only a 4 dimensional control space
+        #we are feeding linear and angular velocity as the twist to the robot 
+        #and x and y as the pose to the robot
+
+        self.translation = translation
+        self.theta = theta
+
+    @classmethod
+    def from_relative_position(cls, relative_position):
+        return RelativePosition(relative_position.translation, relative_position.theta)
+
+    def transform(self, trans):
+        return self.transform_multi([trans])
+
+    def transform_multi(self, translations):
+        points = self.translation
+        for trans in translations:
+            points = np.dot(points, trans)
+        return points
 
 class Node(RelativePosition):
     def __init__(self, translation, theta):
@@ -85,7 +112,7 @@ class Node(RelativePosition):
         self.neighbors[index] = new_index
 
     def as_translation_vector(self):
-        return [self.getX(), self.getY(), self.getZ()]
+        return [self.getX(), self.getY()]
 
     def reset(self):
         self.edgeCost = 0
@@ -93,83 +120,58 @@ class Node(RelativePosition):
         self.f = 0
 
     def __hash__(self):
-        return hash((self.getX(), self.getY(), self.getZ()))
+        return hash((self.getX(), self.getY()))
 
     def __eq__(self, other):
         if other is None:
             return False
-        return (self.getX(), self.getY(), self.getZ()) == (other.getX(), other.getY(), other.getZ())
-
+        return (self.getX(), self.getY() == (other.getX(), other.getY()))
+    
     def __cmp__(self, other):
         if other is None:
             return -1
         return cmp((self.f, self.f - sys.maxunicode * self.edgeCost),
                    (other.f, other.f - sys.maxunicode * other.edgeCost))
-      
-# class that defines a node in se(2)
-class RelativePosition:
-
-    def __init__(self, translation, theta):
-        #only a 4 dimensional control space
-        #we are feeding linear and angular velocity as the twist to the robot 
-        #and x and y as the pose to the robot
-
-        self.translation = translation
-        self.theta = theta
-
-    @classmethod
-    def from_relative_position(cls, relative_position):
-        return RelativePosition(relative_position.translation, relative_position.theta)
-
-    def transform(self, trans):
-        return self.transform_multi([trans])
-
-    def transform_multi(self, translations):
-        points = self.translation
-        for trans in translations:
-            points = np.dot(points, trans)
-        return points
 
 class RoadMap:
-    def __init__(self, tree):
+    def __init__(self, tree_1):
         self.graph = nn.NearestNeighbors(util.distance_controls)
 
-        tree.tree_of_controls = self
-        tree.populate()
+        tree_1.tree = self
+        tree_1.populate()
        # tree.connect(self.graph.nr_nodes, self.graph.nodes)
 	
-class RRTtree(start, goal):
+class RRTtree():
     def __init__(self, start, goal):
         self.start = start
         self.goal = goal
-
+        self.tree = None
         #this is here for testing purposes - need to get rid of and add gazebo integration
         self.uSpeed = [-1,0,1]
         self.uSteer = [math.pi/-6.0,math.pi/-12.0,math.pi/-18.0, 0.0, math.pi/6.0,math.pi/12.0,math.pi/18.0]
         self.ut = 1
 	
     #function that populates the rrt with controls
-    def populate():
+    #populate the sample space with a random control with a random duration
+    def populate(self):
         previous_node = self.start
         for i in range(0,nmax):
-            #populate the sample space with a random control with a random duration
-            #add random node
-		    translation, theta = self.get_sample_point()
-		    new_node = Node(translation, theta)
-		    self.add_sample_point(new_node)
-            #find nearest node to random node previous_node
+            translation, theta = get_translation_controls(),rand_quaternion_controls()
+            new_node = Node(translation, theta)
+            self.add_sample_point(new_node)
             previous_node = new_node
-            expand(new_node)
+            self.expand(new_node)
             self.remove_sample_point(new_node)
 	
     #get the nearest sample point to the previous point (xnew based on xnear)
-    def get_sample_point()):
+
+    def get_sample_point(self):
 	    translation = get_translation_controls()
 	    theta = rand_quaternion_controls()
 	    return translation, theta
 
     def add_sample_point(self, node):
-	    if node in self.tree.graph.nodes:
+        if node in self.tree.graph.nodes:
             return
         self.tree.graph.add_node(node)
 
@@ -177,6 +179,7 @@ class RRTtree(start, goal):
         self.tree.graph.remove_node(node)
         
     #calls subroutines to find nearest node and connect it
+    #find nearest node to random node previous_node
     def expand (self, new_node):
         graph = self.tree.graph  # type: nn.NearestNeighbors
         close_neighbors = nn.pad_or_truncate([], util.FIXED_K, -1)
@@ -184,20 +187,20 @@ class RRTtree(start, goal):
         #find nearest node to new_node based on its neighbors
         num_neighbors = graph.find_k_close(new_node, close_neighbors, neighbor_distance, util.FIXED_K)
         node_near = self.near(num_neighbors, new_node)
-	    #find new node to connect nearest to new
-	    self.step(node_near,new_node)
+        self.step(node_near,new_node)
 
     #returns the index of the nearest node within num_neighbors to new_node
-    def near(num_neighbors, new_node):
-        d_min = self.util.distance_controls(0,new_node)
-        node_near
-            for i in num_neighbors:
-                if self.util.distance_controls(i,new_node) < dmin:
-                    dmin=self.util.distance_controls(i,new_node)
-                    node_near = i
+    def near(self, num_neighbors, new_node):
+        d_min = util.distance_controls(0,new_node)
+        node_near = 0
+        for i in num_neighbors:
+            if util.distance_controls(i,new_node) < d_min:
+                dmin=util.distance_controls(i,new_node)
+                node_near = i
         return node_near
 
     #state transition 
+    #find new node to connect nearest to new
 	def step(self,nnear,nrand):
 		(xn,yn,thetan) = (nnear.x, nnear.y, nnear.theta)
 		(xran,yran,thetaran) = (nrand.x, nrand.y, nrand.theta)
@@ -244,7 +247,7 @@ class RRTtree(start, goal):
 		
 def get_translation_controls():
 	#generate a random x and y as controls for the translation part
-    translation = numpy.eye(2)
+    translation = np.eye(2)
     translation[0][2] = random.uniform(-9,10)
     translation[1][2] = random.uniform(-7.5,6.5)
     return translation
@@ -252,7 +255,33 @@ def get_translation_controls():
 def rand_quaternion_controls():
     #generate a random angle for the rotation part
     theta = random.uniform(0, math.pi)
+    return theta
 
+class Path:
+
+    def __init__(self, road_map):
+        self.road_map = road_map
+        pass
+
+    @abstractmethod
+    def findPath(self, start, goal): raise NotImplementedError
+
+    @abstractmethod
+    def updateVertex(self, vertex, neighbor, goal): raise NotImplementedError
+
+    def h(self, vertex, goal):  # the estimated path cost from the node we're at to the goal node
+
+        # return               max(abs(vertex.x - goal.x), abs(vertex.y - goal.y))
+
+        return util.distance(vertex, goal) * 1.222222
+
+    @staticmethod
+    def c(from_vertex, to_vertex):  # the straight line distance between the s node and e node.
+        return util.distance(from_vertex, to_vertex)
+
+    def f(self, vertex, goal):
+        vertex.f = vertex.edgeCost + self.h(vertex, goal)
+        
 class APath(Path):
 
     def __init__(self, graph):
@@ -324,6 +353,7 @@ class APath(Path):
         self.openSet.add(vector)
         pass
 
+"""
 def send_to_gazebo(controls_of_ackermann, controls_in_path):
     rospy.init_node('move_robot_to_given_place')
     print "hello world 2\n"
@@ -359,6 +389,7 @@ def save_model_state(node):
     state.twist = twist
 
     state_pub.publish(state)
+"""
 
 def main():
   #start for the robot is the bottom left of the maze and goal is the top right of the maze
@@ -368,14 +399,13 @@ def main():
   #create an RRT tree with a start node
   rrt_tree=RoadMap(RRTtree(start, goal))
   a_star = APath(rrt_tree)
-  graph = tree.graph
+  graph = graph.tree
   
   controls_of_ackermann = rrt_tree
   #run a star on the tree to get solution path
   controls_in_path = a_star.findPath(start, goal)
-  path = map(lambda vertex: (vertex.getX(), vertex.getY(), controls_in_path)
-
-  print(path)
+  path = map(lambda vertex: (vertex.getX(), vertex.getY(), controls_in_path))
+  print path
   
   #send_to_gazebo(controls_of_ackermann, controls_in_path)
 
