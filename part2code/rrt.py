@@ -131,7 +131,7 @@ class Node(RelativePosition):
     def __eq__(self, other):
         if other is None:
             return False
-        return (self.getX(), self.getY() == (other.getX(), other.getY()))
+        return ((self.getX(), self.getY()) == (other.getX(), other.getY()))
 
     def __cmp__(self, other):
         if other is None:
