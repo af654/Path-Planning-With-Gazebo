@@ -276,7 +276,7 @@ class NearestNeighbors:
             return None
 
         nr_samples = self.sampling_function()
-        min_distance = 2147483647
+        min_distance = sys.maxsize
 
         min_index = -1
         index = 0

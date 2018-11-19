@@ -121,7 +121,7 @@ def distance(in_s, in_t):  # calculates the offsets of each dimension
     #  sum_d += math.fabs(in_s.rotation.distance_quaternion(in_t.rotation))
 
     if sum_d == 0:
-        return sys.maxsize
+        return sys.maxint - 1
 
     return math.sqrt(sum_d)
 
@@ -130,7 +130,7 @@ def distance_controls(in_s, in_t): # calculates the offsets of each dimension
     sum_d += math.pow(in_s.getY() - in_t.getY(), 2.0)
 
     if sum_d == 0:
-        return sys.maxsize
+        return sys.maxint - 1
 
     return math.sqrt(sum_d)
 
