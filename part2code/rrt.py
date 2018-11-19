@@ -199,7 +199,7 @@ class RRTtree():
         # find nearest node to new_node based on its neighbors
         #num_neighbors = graph.find_k_close(new_node, close_neighbors, neighbor_distance, util.FIXED_K)
         node_near = graph.find_closest(new_node)[2]
-        # node_near = self.near(close_neighbors,num_neighbors, new_node)
+        #node_near = self.near(close_neighbors,num_neighbors, new_node)
         self.step(node_near, new_node)
 
     # returns the index of the nearest node within num_neighbors to new_node
@@ -270,10 +270,13 @@ class RRTtree():
             translation[1][1] = yr[near][-1]
             theta = thetar[near][-1]
             new_node = Node(translation, theta)
-            print("control added to the path",translation[0][1],translation[1][1],theta)
-            self.add_sample_point(new_node)
-            new_node.neighbors[0] = nnear.get_index()
-            new_node.nr_neighbors = 1
+            if util.bresenham(new_node.getX(), new_node.getY(), nnear.getX(), nnear.getY()):
+                return
+            else:
+                print("control added to the path",translation[0][1],translation[1][1],theta)
+                self.add_sample_point(new_node)
+                new_node.neighbors[0] = nnear.get_index()
+                new_node.nr_neighbors = 1
 
     # generate trajectory by integrating equations of motion
     def trajectory(self, xi, yi, thetai, ust, usp):
