@@ -464,8 +464,8 @@ def main():
     a_star = APath(rrt_tree)
     graph = rrt_tree.graph
 
-    rrt_tree.expand(start)
-    rrt_tree.expand(goal)
+    rrt_tree.tree.expand(start)
+    rrt_tree.tree.expand(goal)
 
     controls_of_ackermann = rrt_tree
     # run a star on the tree to get solution path
