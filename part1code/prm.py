@@ -526,12 +526,12 @@ def reposition_robot(vertex):
 
 def main():
     startTime = datetime.now()
-    road_map = RoadMap(AsymptoticPRM())
+    road_map = RoadMap(ConnectedComponentPRM())
     fda = APath(road_map)
     graph = road_map.graph
 
-    start = Node(util.translation_matrix_delta(2, 6, 0), util.rand_quaternion())
-    goal = Node(util.translation_matrix_delta(6, 3, 0), Quaternion(0, 0, 0, 0))
+    start = Node(util.translation_matrix_delta(1, 6, 0), util.rand_quaternion())
+    goal = Node(util.translation_matrix_delta(4, 10, 0), Quaternion(0, 0, 0, 0))
 
     verticies_in_path = fda.findPath(start, goal)
     path = map(lambda vertex: (vertex.getX(), vertex.getY(), vertex.getZ()), verticies_in_path)
