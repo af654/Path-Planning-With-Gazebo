@@ -269,6 +269,8 @@ class RRTtree():
             new_node = Node(translation, theta)
             print("control added to the path",translation[0][1],translation[1][1],theta)
             self.add_sample_point(new_node)
+            new_node.neighbors[0] = nnear.get_index()
+            new_node.nr_neighbors = 1
 
     # generate trajectory by integrating equations of motion
     def trajectory(self, xi, yi, thetai, ust, usp):
@@ -294,6 +296,7 @@ def collision_with_wall(x,y):
 		return 0
     elif (x<-4.2) and (x>-4.5) and (y<1) and (y>-7.5):
 		return 0
+    return 1
 
 def get_translation_controls():
     # generate a random x and y as controls for the translation part
