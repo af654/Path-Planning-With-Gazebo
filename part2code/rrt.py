@@ -347,7 +347,7 @@ class APath(Path):
         graph = self.road_map.graph
 
         end_points = [start, goal]
-        graph.add_nodes(end_points, 2)
+        #graph.add_nodes(end_points, 2)
 
         closed = set()
 
