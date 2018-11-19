@@ -23,7 +23,7 @@ import util
 # from gazebo_msgs.srv import SetModelState
 
 # node limit
-nmax = 1000
+nmax = 20
 
 # class that defines a node in se(2)
 class RelativePosition:
