@@ -462,7 +462,7 @@ def save_model_state(node, prev):
         while True:
             get_state_pub = rospy.ServiceProxy("/gazebo/get_model_state", GetModelState)
             coordinates_resp = get_state_pub("ackermann_vehicle", "world")
-            if coordinates_resp.pose.position.x != prev.getX() and coordinates_resp.pose.position.y != prev.getY():
+            if coordinates_resp.pose.position.x == prev.getX() and coordinates_resp.pose.position.y == prev.getY():
                 break
             rospy.sleep(0.5)
 
