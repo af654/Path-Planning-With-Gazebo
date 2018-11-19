@@ -447,7 +447,7 @@ def send_to_gazebo(controls_in_path):
         rospy.sleep(1)
         print "reposition robot now"
 
-        save_model_state(node_prev, controls_in_path[counter])
+        save_model_state(controls_in_path[counter], node_prev)
 
         node_prev = controls_in_path[counter]
         counter += 1
