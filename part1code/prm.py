@@ -526,7 +526,7 @@ def reposition_robot(vertex):
 
 def main():
     startTime = datetime.now()
-    road_map = RoadMap(FixedKPRM())
+    road_map = RoadMap(ConnectedComponentPRM())
     fda = APath(road_map)
     graph = road_map.graph
 
