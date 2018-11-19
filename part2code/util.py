@@ -5,18 +5,17 @@ import sys
 
 FLOAT_EPS = numpy.finfo(numpy.float).eps
 
-BOUNDARY_MIN_X = -10
-BOUNDARY_MIN_Y = -10
+BOUNDARY_MIN_X = -9
+BOUNDARY_MIN_Y = -5
 
-BOUNDARY_MAX_X = 10
-BOUNDARY_MAX_Y = 10
+BOUNDARY_MAX_X = 9
+BOUNDARY_MAX_Y = 5
 
 BOUNDARY_MIN_Z = 0
 BOUNDARY_MAX_Z = 3
 
 NUM_SAMPLES = 300
 FIXED_K = 10
-
 
 def print_board(board):
     board.reverse()
@@ -83,35 +82,45 @@ def Bresenham3D(node1, node2):
 
     return points
 
-def bresenham(x0, y0, x1, y1):
-    """Yield integer coordinates on the line from (x0, y0) to (x1, y1).
-    Input coordinates should be integers.
-    The result will contain both the start and the end point.
-    """
-    dx = x1 - x0
-    dy = y1 - y0
+def bresenham(node1, node2):
+    x1, y1 = node1.getX() - BOUNDARY_MIN_X, node1.getY()
+    x2, y2 = node2.getX() - BOUNDARY_MIN_X, node2.getY()
 
-    xsign = 1 if dx > 0 else -1
-    ysign = 1 if dy > 0 else -1
+    points = []
 
-    dx = abs(dx)
-    dy = abs(dy)
+    points.append((x1 + BOUNDARY_MIN_X, y1 + BOUNDARY_MIN_Y))
+    points.append((x2 + BOUNDARY_MIN_X, y2 + BOUNDARY_MIN_Y))
 
-    if dx > dy:
-        xx, xy, yx, yy = xsign, 0, 0, ysign
-    else:
-        dx, dy = dy, dx
-        xx, xy, yx, yy = 0, ysign, xsign, 0
+    diffX = x2 - x1
+    diffY = y2 - y1
 
-    D = 2*dy - dx
-    y = 0
+    biggest = max(abs(diffX), abs(diffY))
 
-    for x in range(dx + 1):
-        yield x0 + x*xx + y*yx, y0 + x*xy + y*yy
-        if D >= 0:
-            y += 1
-            D -= 2*dx
-        D += 2*dy
+    dirX = 0.0
+    dirY = 0.0
+
+    if biggest != 0:
+        dirX = diffX / biggest
+        dirY = diffY / biggest
+
+    currentX = x1
+    currentY = x2
+
+    while True:
+        currentX += dirX
+        currentY += dirY
+        points.append([currentX + BOUNDARY_MIN_X, currentY + BOUNDARY_MIN_Y])
+
+        if currentX > BOUNDARY_MAX_X or currentY > BOUNDARY_MAX_Y:
+            break
+        elif currentX < BOUNDARY_MAX_X or currentY < BOUNDARY_MIN_Y:
+            break
+
+        if not (abs(currentX - x2) > 1 or abs(currentY - y2) > 1):
+            break
+
+    return points
+    
 
 def distance(in_s, in_t):  # calculates the offsets of each dimension
     sum_d = math.pow(in_s.getX() - in_t.getX(), 2.0)

@@ -269,13 +269,17 @@ class RRTtree():
             translation[1][1] = yr[near][-1]
             theta = thetar[near][-1]
             new_node = Node(translation, theta)
-            if util.bresenham(new_node.getX(), new_node.getY(), nnear.getX(), nnear.getY()):
-                return
-            else:
-                print("control added to the path",translation[0][1],translation[1][1],theta)
-                self.add_sample_point(new_node)
-                new_node.neighbors[0] = nnear.get_index()
-                new_node.nr_neighbors = 1
+            points_list = util.bresenham(new_node, nnear)
+            for p in points_list:
+                if collision_with_wall(p[0],p[1])==0:
+                    cd = True
+                    return
+        
+        if cd==False:
+            print("control added to the path",translation[0][1],translation[1][1],theta)
+            self.add_sample_point(new_node)
+            new_node.neighbors[0] = nnear.get_index()
+            new_node.nr_neighbors = 1
 
     # generate trajectory by integrating equations of motion
     def trajectory(self, xi, yi, thetai, ust, usp):
