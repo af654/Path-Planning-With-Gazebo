@@ -514,7 +514,7 @@ def main():
 
     for node in path:
         if node_prev is not None:
-            pyplot.plot([node.getX(), node_prev.getX()], [node.getY(), node_prev.getY()], 'ro-', color='yellow')
+            pyplot.plot([node.getX(), node_prev.getX()], [node.getY(), node_prev.getY()], 'ro-', color='red')
 
         node_prev = node
 
