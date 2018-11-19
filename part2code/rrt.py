@@ -170,7 +170,8 @@ class RRTtree():
             new_node = Node(translation, theta)
             self.add_sample_point(new_node)
             previous_node = new_node
-            self.expand(new_node)
+            if self.tree.graph.nr_nodes > 2:
+                self.expand(new_node)
             #self.remove_sample_point(new_node)
 
     # get the nearest sample point to the previous point (xnew based on xnear)
