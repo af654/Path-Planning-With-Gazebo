@@ -531,7 +531,7 @@ def main():
     graph = road_map.graph
 
     start = Node(util.translation_matrix_delta(1, 6, 0), util.rand_quaternion())
-    goal = Node(util.translation_matrix_delta(4, 11, 0), Quaternion(0, 0, 0, 0))
+    goal = Node(util.translation_matrix_delta(4, 10, 0), Quaternion(0, 0, 0, 0))
 
     verticies_in_path = fda.findPath(start, goal)
     path = map(lambda vertex: (vertex.getX(), vertex.getY(), vertex.getZ()), verticies_in_path)
