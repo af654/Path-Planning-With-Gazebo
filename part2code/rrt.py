@@ -478,7 +478,7 @@ def main():
     for i in range(0, graph.nr_nodes):
         node = graph.nodes[i]
         if node_prev is not None:
-            pyplot.plot([node.getX(), node_prev.getX()], [node.getY(), node_prev.getY()], 'ro-', color='yellow')
+            pyplot.plot([node.getX(), node_prev.getX()], [node.getY(), node_prev.getY()], 'ro-', color='red')
 
         node_prev = node
 
