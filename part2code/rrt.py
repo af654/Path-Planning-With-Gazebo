@@ -290,13 +290,10 @@ def collision_with_wall(x,y):
     print y
     if (x<6.3) and (x>6) and (y<2.9) and (y>-4.2):
 		return 0
-		break
     elif (x<1.5) and (x>1.2) and (y<6.5) and (y>-1.5):
 		return 0
-		break
     elif (x<-4.2) and (x>-4.5) and (y<1) and (y>-7.5):
 		return 0
-		break
 
 def get_translation_controls():
     # generate a random x and y as controls for the translation part
