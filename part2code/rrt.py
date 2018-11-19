@@ -485,6 +485,8 @@ def save_model_state(node, prev):
     state.twist = twist
 
     set_state_pub.publish(state)
+    set_state_pub.publish(state)
+    set_state_pub.publish(state)
 
 
 def find_closest_priority(graph, node):
