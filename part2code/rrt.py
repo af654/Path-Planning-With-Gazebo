@@ -512,7 +512,7 @@ def main():
 
     node_prev = None
 
-    for node in path:
+    for node in controls_in_path:
         if node_prev is not None:
             pyplot.plot([node.getX(), node_prev.getX()], [node.getY(), node_prev.getY()], 'ro-', color='red')
 
