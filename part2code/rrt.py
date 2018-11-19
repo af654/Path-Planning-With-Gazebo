@@ -487,7 +487,7 @@ def find_closest_priority(graph, node):
 
 def main():
     # start for the robot is the bottom left of the maze and goal is the top right of the maze
-    start = Node(util.translation_matrix_delta(-9, -5, 0), util.random_theta())
+    start = Node(util.translation_matrix_delta(-4, 0, 0), util.random_theta())
     goal = Node(util.translation_matrix_delta(9, 5, 0), util.random_theta())
 
     # create an RRT tree with a start node
