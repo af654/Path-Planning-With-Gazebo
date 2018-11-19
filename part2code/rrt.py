@@ -15,13 +15,13 @@ import numpy as np
 import nearest_neighbors as nn
 import util
 
-from gazebo_msgs.msg import ModelState, ModelStates, GetModelState
+from gazebo_msgs.msg import ModelState, ModelStates
 from geometry_msgs.msg import Point, Pose, Twist, Quaternion
 import rospy
 import roslib
 from std_msgs.msg import String
 from gazebo_msgs.msg import ModelState
-from gazebo_msgs.srv import SetModelState
+from gazebo_msgs.srv import SetModelState, GetModelState
 from geometry_msgs.msg import PoseWithCovarianceStamped
 from std_msgs.msg import Empty as EmptyMsg
 from std_srvs.srv import Empty as EmptySrv
