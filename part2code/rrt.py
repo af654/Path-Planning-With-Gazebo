@@ -15,6 +15,18 @@ import numpy as np
 import nearest_neighbors as nn
 import util
 
+
+from gazebo_msgs.msg import ModelState, ModelStates
+from geometry_msgs.msg import Point, Pose, Twist, Quaternion
+import rospy
+import roslib
+from std_msgs.msg import String
+from gazebo_msgs.msg import ModelState
+from gazebo_msgs.srv import SetModelState
+from geometry_msgs.msg import PoseWithCovarianceStamped
+from std_msgs.msg import Empty as EmptyMsg
+from std_srvs.srv import Empty as EmptySrv
+
 # import pqp_ros_client_ours as pqp
 # from gazebo_msgs.msg import ModelState, ModelStates
 # from geometry_msgs.msg import Point, Pose, Twist
@@ -422,14 +434,13 @@ class APath(Path):
         pass
 
 
-"""
 def send_to_gazebo(controls_of_ackermann, controls_in_path):
     rospy.init_node('move_robot_to_given_place')
     print "hello world 2\n"
 
     counter = 0
     while not rospy.is_shutdown():
-        if counter >= len(verticies_in_path):
+        if counter >= len(controls_of_ackermann):
             break
 
         rospy.sleep(1)
@@ -437,18 +448,20 @@ def send_to_gazebo(controls_of_ackermann, controls_in_path):
 
         save_model_state(controls_in_path[counter])
         counter += 1
-        
+
+
 def save_model_state(node):
-   # Set Gazebo Model pose and twist
+    # Set Gazebo Model pose and twist
     state_pub = rospy.Publisher("/gazebo/set_model_state", ModelState, queue_size=10)
     pose = Pose()
     twist = Twist()
 
     pose.position.x = node.getX()
     pose.position.y = node.getY()
-   
+    pose.position.z = 0
+
     twist.linear = node.theta
-    #twist.angular = node.angular
+    # twist.angular = node.angular
 
     state = ModelState()
 
@@ -458,7 +471,6 @@ def save_model_state(node):
     state.twist = twist
 
     state_pub.publish(state)
-"""
 
 
 def find_closest_priority(graph, node):
@@ -487,8 +499,8 @@ def find_closest_priority(graph, node):
 
 def main():
     # start for the robot is the bottom left of the maze and goal is the top right of the maze
-    start = Node(util.translation_matrix_delta(-9, -5, 0), util.random_theta())
-    goal = Node(util.translation_matrix_delta(9, 5, 0), util.random_theta())
+    start = Node(util.translation_matrix_delta(-5, -9, 0), util.random_theta())
+    goal = Node(util.translation_matrix_delta(-5, 0, 0), util.random_theta())
 
     # create an RRT tree with a start node
     rrt_tree = RoadMap(RRTtree(start, goal))
