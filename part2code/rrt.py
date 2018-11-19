@@ -15,7 +15,6 @@ import numpy as np
 import nearest_neighbors as nn
 import util
 
-
 from gazebo_msgs.msg import ModelState, ModelStates
 from geometry_msgs.msg import Point, Pose, Twist, Quaternion
 import rospy
@@ -434,13 +433,13 @@ class APath(Path):
         pass
 
 
-def send_to_gazebo(controls_of_ackermann, controls_in_path):
+def send_to_gazebo(controls_in_path):
     rospy.init_node('move_robot_to_given_place')
     print "hello world 2\n"
 
     counter = 0
     while not rospy.is_shutdown():
-        if counter >= len(controls_of_ackermann):
+        if counter >= len(controls_in_path):
             break
 
         rospy.sleep(1)
@@ -531,10 +530,11 @@ def main():
         node_prev = node
 
     pyplot.show()
-    # send_to_gazebo(controls_of_ackermann, controls_in_path)
 
-    # each rrt node in the tree has a translation and rotation
-    # this translates to a pose and a twist for the ackermann vehicle model
+    send_to_gazebo(path)
+
+# each rrt node in the tree has a translation and rotation
+# this translates to a pose and a twist for the ackermann vehicle model
 
 
 if __name__ == "__main__":
