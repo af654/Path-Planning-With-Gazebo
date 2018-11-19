@@ -15,7 +15,7 @@ import numpy as np
 import nearest_neighbors as nn
 import util
 
-from gazebo_msgs.msg import ModelState, ModelStates
+from gazebo_msgs.msg import ModelState, ModelStates, GetModelState
 from geometry_msgs.msg import Point, Pose, Twist, Quaternion
 import rospy
 import roslib
@@ -438,6 +438,8 @@ def send_to_gazebo(controls_in_path):
     print "hello world 2\n"
 
     counter = 0
+
+    node_prev = None
     while not rospy.is_shutdown():
         if counter >= len(controls_in_path):
             break
@@ -445,13 +447,26 @@ def send_to_gazebo(controls_in_path):
         rospy.sleep(1)
         print "reposition robot now"
 
-        save_model_state(controls_in_path[counter])
+        save_model_state(node_prev, controls_in_path[counter])
+
+        node_prev = controls_in_path[counter]
         counter += 1
 
 
-def save_model_state(node):
+def save_model_state(node, prev):
     # Set Gazebo Model pose and twist
-    state_pub = rospy.Publisher("/gazebo/set_model_state", ModelState, queue_size=10)
+
+    rospy.wait_for_service('/gazebo/get_model_state')
+
+    if prev is not None:
+        while True:
+            get_state_pub = rospy.Publisher("/gazebo/get_model/state", GetModelState, queue_size=10)
+            coordinates_resp = get_state_pub("ackermann_vehicle")
+            if coordinates_resp.coordinates.x != prev.getX() and coordinates_resp.coordinates.y != prev.getY():
+                break
+            rospy.sleep(0.5)
+
+    set_state_pub = rospy.Publisher("/gazebo/set_model_state", ModelState, queue_size=10)
     pose = Pose()
     twist = Twist()
 
@@ -469,7 +484,7 @@ def save_model_state(node):
     state.pose = pose
     state.twist = twist
 
-    state_pub.publish(state)
+    set_state_pub.publish(state)
 
 
 def find_closest_priority(graph, node):
@@ -532,6 +547,7 @@ def main():
     pyplot.show()
 
     send_to_gazebo(controls_in_path)
+
 
 # each rrt node in the tree has a translation and rotation
 # this translates to a pose and a twist for the ackermann vehicle model
