@@ -170,7 +170,7 @@ class RRTtree():
             new_node = Node(translation, theta)
             self.add_sample_point(new_node)
             previous_node = new_node
-            if self.tree.graph.nr_nodes >= 2:
+            if self.tree.graph.nr_nodes >= 10:
                 self.expand(new_node)
             #self.remove_sample_point(new_node)
 
