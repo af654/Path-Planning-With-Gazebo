@@ -531,7 +531,7 @@ def main():
 
     pyplot.show()
 
-    send_to_gazebo(path)
+    send_to_gazebo(controls_in_path)
 
 # each rrt node in the tree has a translation and rotation
 # this translates to a pose and a twist for the ackermann vehicle model
