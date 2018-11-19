@@ -25,6 +25,7 @@ import util
 # node limit
 nmax = 2000
 
+
 # class that defines a node in se(2)
 class RelativePosition:
 
@@ -70,17 +71,17 @@ class Node(RelativePosition):
         self.angular = 0
 
     def getX(self):
-        return self.translation[0][1]
+        return self.translation[0][2]
 
     def getY(self):
-        return self.translation[1][1]
+        return self.translation[1][2]
 
     def set_index(self, index):
         self.index = index
 
     def get_index(self):
         return self.index
-    
+
     def get_theta(self):
         return self.theta
 
@@ -139,6 +140,7 @@ class Node(RelativePosition):
         return cmp((self.f, self.f - sys.maxunicode * self.edgeCost),
                    (other.f, other.f - sys.maxunicode * other.edgeCost))
 
+
 class RoadMap:
     def __init__(self, tree_1):
         self.graph = nn.NearestNeighbors(util.distance_controls)
@@ -149,6 +151,7 @@ class RoadMap:
         tree_1.populate()
         print "we got here too"
     # tree.connect(self.graph.nr_nodes, self.graph.nodes)
+
 
 class RRTtree():
     def __init__(self, start, goal):
@@ -164,6 +167,7 @@ class RRTtree():
     # function that populates the rrt with controls
     # populate the sample space with a random control with a random duration
     def populate(self):
+        self.tree.graph.add_node(self.start)
         previous_node = self.start
         for i in range(0, nmax):
             translation, theta = get_translation_controls(), rand_quaternion_controls()
@@ -172,7 +176,7 @@ class RRTtree():
             previous_node = new_node
             if self.tree.graph.nr_nodes >= 2:
                 self.expand(new_node)
-            #self.remove_sample_point(new_node)
+            # self.remove_sample_point(new_node)
 
     # get the nearest sample point to the previous point (xnew based on xnear)
 
@@ -196,30 +200,30 @@ class RRTtree():
         close_neighbors = nn.pad_or_truncate([], util.FIXED_K, None)
         neighbor_distance = nn.pad_or_truncate([], util.FIXED_K, sys.maxint)
         # find nearest node to new_node based on its neighbors
-        #num_neighbors = graph.find_k_close(new_node, close_neighbors, neighbor_distance, util.FIXED_K)
+        # num_neighbors = graph.find_k_close(new_node, close_neighbors, neighbor_distance, util.FIXED_K)
         node_near = graph.find_closest(new_node)[2]
-        #node_near = self.near(close_neighbors,num_neighbors, new_node)
+        # node_near = self.near(close_neighbors,num_neighbors, new_node)
         self.step(node_near, new_node)
 
     # returns the index of the nearest node within num_neighbors to new_node
-    def near(self, close_neighbors,num_neighbors, new_node):
-        #find a near node
-        translation = np.eye(2)
-        translation[0][1] = 0
-        translation[1][1] = 0
+    def near(self, close_neighbors, num_neighbors, new_node):
+        # find a near node
+        translation = np.eye(3)
+        translation[0][2] = 0
+        translation[1][2] = 0
         theta = 0
         node_zero = Node(translation, theta)
         d_min = util.distance_controls(node_zero, new_node)
 
         node_near = node_zero
-        for i in range(0,num_neighbors):
+        for i in range(0, num_neighbors):
             node = close_neighbors[i]
             if util.distance_controls(node, new_node) < d_min:
                 d_min = util.distance_controls(node, new_node)
                 node_near = node
 
         return node_near
-        
+
         # state transition
         # find new node to connect nearest to new
 
@@ -253,30 +257,30 @@ class RRTtree():
 
         self.remove_sample_point(nrand)
 
-        #collision detection
+        # collision detection
 
         cd = False
-        for i in range(0,len(xr[near])):
-			if collision_with_wall(xr[near][i],yr[near][i])==0:
-				cd = True
-                #collision so dont add it
-				break
+        for i in range(0, len(xr[near])):
+            if collision_with_wall(xr[near][i], yr[near][i]) == 0:
+                cd = True
+                # collision so dont add it
+                break
 
-        #add the control that gets you from nnear to nnew (the nearest reachable)
-        if cd==False:
-            translation = np.eye(2)
-            translation[0][1] = xr[near][-1]
-            translation[1][1] = yr[near][-1]
+        # add the control that gets you from nnear to nnew (the nearest reachable)
+        if not cd:
+            translation = np.eye(3)
+            translation[0][2] = xr[near][-1]
+            translation[1][2] = yr[near][-1]
             theta = thetar[near][-1]
             new_node = Node(translation, theta)
             points_list = util.bresenham(new_node, nnear)
             for p in points_list:
-                if collision_with_wall(p[0],p[1])==0:
+                if collision_with_wall(p[0], p[1]) == 0:
                     cd = True
                     return
-        
-        if cd==False:
-            print("control added to the path",translation[0][1],translation[1][1],theta)
+
+        if cd == False:
+            print("control added to the path", translation[0][2], translation[1][2], theta)
             self.add_sample_point(new_node)
             new_node.neighbors[0] = nnear.get_index()
             new_node.nr_neighbors = 1
@@ -294,30 +298,32 @@ class RRTtree():
             y.append(y[i - 1] + usp * math.sin(theta[i - 1]) * dt)
         return (x, y, theta)
 
-#collision_with_wall(xr[near][i],yr[near][i])
-#check for a specific node
-def collision_with_wall(x,y):
-    print x
-    print y
-    if (x<6.3) and (x>6) and (y<2.9) and (y>-4.2):
-		return 0
-    elif (x<1.5) and (x>1.2) and (y<6.5) and (y>-1.5):
-		return 0
-    elif (x<-4.2) and (x>-4.5) and (y<1) and (y>-7.5):
-		return 0
+
+# collision_with_wall(xr[near][i],yr[near][i])
+# check for a specific node
+def collision_with_wall(x, y):
+    if (x < 6.3) and (x > 6) and (y < 2.9) and (y > -4.2):
+        return 0
+    elif (x < 1.5) and (x > 1.2) and (y < 6.5) and (y > -1.5):
+        return 0
+    elif (x < -4.2) and (x > -4.5) and (y < 1) and (y > -7.5):
+        return 0
     return 1
+
 
 def get_translation_controls():
     # generate a random x and y as controls for the translation part
-    translation = np.eye(2)
-    translation[0][1] = random.uniform(-9, 10)
-    translation[1][1] = random.uniform(-7.5, 6.5)
+    translation = np.eye(3)
+    translation[0][2] = random.uniform(-9, 10)
+    translation[1][2] = random.uniform(-7.5, 6.5)
     return translation
+
 
 def rand_quaternion_controls():
     # generate a random angle for the rotation part
     theta = random.uniform(0, math.pi)
     return theta
+
 
 class Path:
 
@@ -356,7 +362,7 @@ class APath(Path):
         graph = self.road_map.graph
 
         end_points = [start, goal]
-        #graph.add_nodes(end_points, 2)
+        # graph.add_nodes(end_points, 2)
 
         closed = set()
 
@@ -454,6 +460,31 @@ def save_model_state(node):
     state_pub.publish(state)
 """
 
+
+def find_closest_priority(graph, node):
+    close_neighbors = nn.pad_or_truncate([], util.FIXED_K, None)
+    neighbor_distance = nn.pad_or_truncate([], util.FIXED_K, sys.maxint)
+    num_neighbors = graph.find_k_close(node, close_neighbors, neighbor_distance, util.FIXED_K)
+
+    index = 0
+    while True:
+        if index >= num_neighbors:
+            break
+
+        next = close_neighbors[index]
+        points = util.bresenham(next, node)
+
+        col = False
+        for point in points:
+            if collision_with_wall(point[0], point[1]) == 0:
+                col = True
+                break
+        if not col:
+            return next
+        index += 1
+    return None
+
+
 def main():
     # start for the robot is the bottom left of the maze and goal is the top right of the maze
     start = Node(util.translation_matrix_delta(-9, -5, 0), util.random_theta())
@@ -464,19 +495,24 @@ def main():
     a_star = APath(rrt_tree)
     graph = rrt_tree.graph
 
-    rrt_tree.tree.expand(start)
-    rrt_tree.tree.expand(goal)
+    closest_start = find_closest_priority(graph, start)
+    start.neighbors[0] = closest_start.get_index()
+    start.nr_neighbors = 1
+
+    graph.add_node(goal)
+
+    closest_end = find_closest_priority(graph, goal)
+    closest_end.neighbors[0] = goal.get_index()
 
     controls_of_ackermann = rrt_tree
     # run a star on the tree to get solution path
     controls_in_path = a_star.findPath(start, goal)
-    path = map(lambda vertex: (vertex.getX(), vertex.getY()),controls_in_path)
+    path = map(lambda vertex: (vertex.getX(), vertex.getY()), controls_in_path)
     print path
 
     node_prev = None
 
-    for i in range(0, graph.nr_nodes):
-        node = graph.nodes[i]
+    for node in path:
         if node_prev is not None:
             pyplot.plot([node.getX(), node_prev.getX()], [node.getY(), node_prev.getY()], 'ro-', color='yellow')
 
@@ -487,6 +523,7 @@ def main():
 
     # each rrt node in the tree has a translation and rotation
     # this translates to a pose and a twist for the ackermann vehicle model
+
 
 if __name__ == "__main__":
     main()

@@ -172,11 +172,10 @@ def translation_ground_zero_random():
 
 
 def translation_matrix_delta(dx, dy, dz):
-    translation = numpy.eye(4)
+    translation = numpy.eye(3)
 
-    translation[0][3] = dx
-    translation[1][3] = dy
-    translation[2][3] = dz
+    translation[0][2] = dx
+    translation[1][2] = dy
     return translation
 
 
