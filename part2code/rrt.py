@@ -288,25 +288,15 @@ class RRTtree():
 def collision_with_wall(x,y):
     print x
     print y
-    #four vertices for each rectangular obstacle
-    obs_num = len(x)/4
-    for i in range(1,obs_num+1):
-        xomin=x[4*(i-1)]
-        xomax=x[4*(i-1)+2]
-        yomin=y[4*(i-1)]
-        yomax=y[4*(i-1)+1]
-        if (x>=xomin) and (x<=xomax) and (y>=yomin) and (y<=yomax):
-            return 0
-            break
-        elif (x<6.3) and (x>6) and (y<2.9) and (y>-4.2):
-			return 0
-			break
-        elif (x<1.5) and (x>1.2) and (y<6.5) and (y>-1.5):
-			return 0
-			break
-        elif (x<-4.2) and (x>-4.5) and (y<1) and (y>-7.5):
-			return 0
-			break
+    if (x<6.3) and (x>6) and (y<2.9) and (y>-4.2):
+		return 0
+		break
+    elif (x<1.5) and (x>1.2) and (y<6.5) and (y>-1.5):
+		return 0
+		break
+    elif (x<-4.2) and (x>-4.5) and (y<1) and (y>-7.5):
+		return 0
+		break
 
 def get_translation_controls():
     # generate a random x and y as controls for the translation part
