@@ -459,7 +459,7 @@ def save_model_state(node):
     pose.position.y = node.getY()
     pose.position.z = 0
 
-    twist.linear = node.theta
+    #twist.linear = node.theta
     # twist.angular = node.angular
 
     state = ModelState()
