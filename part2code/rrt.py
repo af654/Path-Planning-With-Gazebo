@@ -452,19 +452,18 @@ def send_to_gazebo(controls_in_path):
         node_prev = controls_in_path[counter]
         counter += 1
 
-
 def save_model_state(node, prev):
     # Set Gazebo Model pose and twist
 
     rospy.wait_for_service('/gazebo/get_model_state')
 
-    if prev is not None:
-        while True:
-            get_state_pub = rospy.ServiceProxy("/gazebo/get_model_state", GetModelState)
-            coordinates_resp = get_state_pub("ackermann_vehicle", "world")
-            if coordinates_resp.pose.position.x == prev.getX() and coordinates_resp.pose.position.y == prev.getY():
-                break
-            rospy.sleep(0.5)
+    #if prev is not None:
+        #while True:
+            #get_state_pub = rospy.ServiceProxy("/gazebo/get_model_state", GetModelState)
+            #coordinates_resp = get_state_pub("ackermann_vehicle", "world")
+            #if coordinates_resp.pose.position.x == prev.getX() and coordinates_resp.pose.position.y == prev.getY():
+                #break
+            #rospy.sleep(0.5)
 
     set_state_pub = rospy.Publisher("/gazebo/set_model_state", ModelState, queue_size=10)
     pose = Pose()
@@ -474,7 +473,7 @@ def save_model_state(node, prev):
     pose.position.y = node.getY()
     pose.position.z = 0
 
-    # twist.linear = node.theta
+    twist.linear = node.theta
     # twist.angular = node.angular
 
     state = ModelState()
