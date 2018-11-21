@@ -455,7 +455,7 @@ def send_to_gazebo(controls_in_path):
 def save_model_state(node, prev):
     # Set Gazebo Model pose and twist
 
-    rospy.wait_for_service('/gazebo/get_model_state')
+    #rospy.wait_for_service('/gazebo/get_model_state')
 
     #if prev is not None:
         #while True:
